@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Collector</string>
+
+    <string name="login_error_empty">Debe ingresar un nombre de usuario y contraseña</string>
+
+    <string name="generalProgressDialogMessage">Cargando...</string>
+
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
