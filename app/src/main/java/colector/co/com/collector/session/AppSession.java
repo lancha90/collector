@@ -14,6 +14,7 @@ public class AppSession {
     private String token;
     private List<Survey> surveyAvailable;
     private List<Survey> surveyDone;
+    private Survey currentSurvey;
 
     public AppSession() {
     }
@@ -62,6 +63,14 @@ public class AppSession {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public Survey getCurrentSurvey() {
+        return currentSurvey;
+    }
+
+    public void setCurrentSurvey(Survey currentSurvey) {
+        this.currentSurvey = currentSurvey;
     }
 }
 

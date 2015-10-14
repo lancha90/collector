@@ -1,16 +1,19 @@
 package colector.co.com.collector.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import colector.co.com.collector.R;
+import colector.co.com.collector.SurveyActivity;
 import colector.co.com.collector.adapters.SurveyAdapter;
 import colector.co.com.collector.model.Survey;
 import colector.co.com.collector.session.AppSession;
@@ -61,6 +64,16 @@ public class SurveyAvailable extends Fragment {
 
         SurveyAdapter adapter = new SurveyAdapter(getActivity(),new ArrayList<>(toPrint),idTab);
         list.setAdapter(adapter);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                AppSession.getInstance().setCurrentSurvey(toPrint.get(position));
+                Intent intent = new Intent(getContext(), SurveyActivity.class);
+                startActivity(intent);
+
+            }
+        });
     }
 
 
