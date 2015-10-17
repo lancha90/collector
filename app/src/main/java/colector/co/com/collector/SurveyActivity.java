@@ -7,18 +7,27 @@ import android.app.DialogFragment;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
+import colector.co.com.collector.adapters.SurveyAdapterOptionalType;
+import colector.co.com.collector.model.IdValue;
 import colector.co.com.collector.model.Question;
 import colector.co.com.collector.model.Section;
 import colector.co.com.collector.model.Survey;
+import colector.co.com.collector.model.SurveySave;
+import colector.co.com.collector.persistence.dao.SurveyDAO;
 import colector.co.com.collector.session.AppSession;
 
 public class SurveyActivity extends AppCompatActivity {
@@ -30,9 +39,79 @@ public class SurveyActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_survey);
+
+
+
         container = (LinearLayout) findViewById(R.id.survey_contaniner);
 
         buildSurvey();
+
+        // TODO internacionalizar mensaje
+        container.addView(buildButton("GUARDAR", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                boolean isValid = true;
+                SurveySave toInsert = new SurveySave();
+
+                for(int i=0; i<container.getChildCount();i++){
+
+                    if(container.getChildAt(i) instanceof LinearLayout){
+                        LinearLayout toFind = (LinearLayout) container.getChildAt(i);
+
+                        for(int j=0; j<toFind.getChildCount();j++){
+
+                            if(toFind.getChildAt(j) instanceof EditText ){
+                                EditText toProcess = (EditText) toFind.getChildAt(j);
+
+                                if(toProcess != null && !toProcess.getText().toString().isEmpty()){
+
+                                    toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(),toProcess.getText().toString()) );
+
+                                }else{
+                                    isValid=false;
+                                }
+
+                            }else if(toFind.getChildAt(j) instanceof Spinner ){
+                                Spinner toProcess = (Spinner) toFind.getChildAt(j);
+
+                                if(toProcess != null ){
+                                    toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(), String.valueOf(toProcess.getSelectedView().getTag())));
+                                }else{
+                                    isValid=false;
+                                }
+
+
+                            }
+                        }
+                    }
+                }
+
+                if(isValid){
+                    toInsert.setId(survey.getForm_id());
+                    // TODO implemnetar el api geografica
+                    toInsert.setLatitude("LATITUDE");
+                    toInsert.setLongitude("LONGITUDE");
+
+                    Long result = new SurveyDAO(SurveyActivity.this).saveSurveyInstance(toInsert);
+
+                    if(result != -1){
+                        Toast.makeText(SurveyActivity.this,"ENCUESTAS GUARDADA id: "+result,Toast.LENGTH_LONG).show();
+                    }else{
+                        // TODO internacionalizar mensaje
+                        Toast.makeText(SurveyActivity.this,"Oops! Ocurrio un problema intente mas tarde",Toast.LENGTH_LONG).show();
+                    }
+
+
+                }else{
+                    // TODO internacionalizar mensaje
+                    Toast.makeText(SurveyActivity.this,"Debe diligenciar todos los campos",Toast.LENGTH_LONG).show();
+                }
+
+            }
+        })  );
+
+
     }
 
     private void buildSurvey(){
@@ -61,12 +140,17 @@ public class SurveyActivity extends AppCompatActivity {
                 // input text
                 case 1:
                     linear.addView(buildTextView(question.getName()));
-                    linear.addView(buildEditText());
+                    linear.addView(buildEditText(question.getId()));
                     break;
                 // TODO implementar el multilinea
                 // input text multiline
                 case 2:
 
+                    break;
+                // opcion o combobox
+                case 3:
+                    linear.addView(buildTextView(question.getName()));
+                    linear.addView(buildSpinner(question.getResponses(),question.getId()));
                     break;
                 // date
                 case 7:
@@ -77,7 +161,12 @@ public class SurveyActivity extends AppCompatActivity {
                             DialogFragment newFragment = new TimePickerFragment((EditText) v);
                             newFragment.show(SurveyActivity.this.getFragmentManager(), "timePicker");
                         }
-                    }));
+                    },question.getId()));
+                    break;
+                // numeric input text
+                case 8:
+                    linear.addView(buildTextView(question.getName()));
+                    linear.addView(buildEditTextNumeric(question.getId()));
                     break;
 
             }
@@ -108,17 +197,43 @@ public class SurveyActivity extends AppCompatActivity {
      * Create programatically a input text
      * @return
      */
-    private EditText buildEditText(){
+    private EditText buildEditText(Long id){
         EditText toReturn = new EditText(this);
+        toReturn.setTag(id);
         setLayoutParams(toReturn);
         return toReturn;
     }
 
-    private EditText buildEditText(View.OnClickListener listener){
+    /**
+     * Create programatically a input numeric
+     * @return
+     */
+    private EditText buildEditTextNumeric(Long id){
+        EditText toReturn = buildEditText(id);
+        toReturn.setInputType(InputType.TYPE_CLASS_NUMBER);
+        return toReturn;
+    }
+
+    private EditText buildEditText(View.OnClickListener listener,Long id){
         EditText toReturn = new EditText(this);
         toReturn.setOnClickListener(listener);
         toReturn.setFocusable(false);
+        toReturn.setTag(id);
         setLayoutParams(toReturn);
+        return toReturn;
+    }
+
+
+    /**
+     * Create programatically a spinner
+     * @return
+     */
+    private Spinner buildSpinner(List<IdValue> responses,Long id){
+        Spinner toReturn = new Spinner(this);
+        toReturn.setTag(id);
+        setLayoutParams(toReturn);
+        toReturn.setAdapter(new SurveyAdapterOptionalType(this,new ArrayList<IdValue>(responses)));
+
         return toReturn;
     }
 
@@ -133,6 +248,8 @@ public class SurveyActivity extends AppCompatActivity {
         setLayoutParams(toReturn);
         return toReturn;
     }
+
+
 
 
     // --------- UTILITIES --------------

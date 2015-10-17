@@ -12,9 +12,12 @@ public class AppSettings {
 
     // ------------------ DATABASE ------------------
     public static String DB_NAME = "v1_collector";
-    public static int DB_VERSION = 1;
+    public static int DB_VERSION = 3;
 
     // ------------------ HTTP CODES ---------------
     public static Long HTTP_OK = 200L;
+
+    // ------------------ LOG ------------------
+    public static String TAG = "Collector";
 
 }

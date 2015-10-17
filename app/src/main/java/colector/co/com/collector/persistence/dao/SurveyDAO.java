@@ -2,8 +2,13 @@ package colector.co.com.collector.persistence.dao;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import colector.co.com.collector.model.IdValue;
@@ -11,11 +16,15 @@ import colector.co.com.collector.model.Question;
 import colector.co.com.collector.model.ResponseComplex;
 import colector.co.com.collector.model.Section;
 import colector.co.com.collector.model.Survey;
+import colector.co.com.collector.model.SurveySave;
 import colector.co.com.collector.persistence.DriverSQL;
+import colector.co.com.collector.settings.AppSettings;
 
 public class SurveyDAO extends DriverSQL {
 
 	private final static String TBL_NAME = "TBL_SURVEY";
+	private final static String TBL_NAME_SURVEY_INSTANCE = "TBL_SURVEY_INSTANCE";
+	private final static String TBL_NAME_SURVEY_INSTANCE_DETAIL = "TBL_SURVEY_INSTANCE_DETAIL";
 	private final static String TBL_NAME_SECTION = "TBL_SECTION";
 	private final static String TBL_NAME_QUESTION = "TBL_QUESTION";
 	private final static String TBL_NAME_RESPONSE_COMPLEX = "TBL_RESPONSE_COMPLEX";
@@ -27,6 +36,198 @@ public class SurveyDAO extends DriverSQL {
 	public SurveyDAO(Context ctx) {
 		super(ctx);
 	}
+
+
+    // ----------------------------- QUERY -----------------------------------
+
+    /**
+     * Return list of survey available
+     * @return
+     */
+    public List<Survey> getSurveyAvailable(){
+
+        db = getDBRead();
+        List<Survey> toReturn = new ArrayList<Survey>();
+        String[] fields = new String[] { "ID", "NAME", "DESCRIPTION" };
+
+        Cursor cursor = db.query(TBL_NAME, fields, null, null, null, null, null);
+
+        try {
+            if (cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        Survey survey = new Survey();
+                        survey.setForm_id(cursor.getLong(0));
+                        survey.setForm_name(cursor.getString(1));
+                        survey.setForm_description(cursor.getString(2));
+                        getSurveySections(db, survey);
+
+                        toReturn.add(survey);
+
+                    } while (cursor.moveToNext());
+                }
+            }
+
+        }catch (SQLException se) {
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME + ".";
+            Log.e(AppSettings.TAG, msg, se);
+
+        } finally {
+            close();
+        }
+
+        return toReturn;
+    }
+
+
+
+    /**
+     * Get and insert section from survey
+     * @param db
+     * @param survey
+     */
+    private void getSurveySections(SQLiteDatabase db, Survey survey){
+
+        String[] fields = new String[] { "ID", "NAME", "DESCRIPTION" };
+        String[] where = new String[] { String.valueOf(survey.getForm_id()) };
+
+        Cursor cursor = db.query(TBL_NAME_SECTION, fields, "SURVEY=?",where, null, null, null);
+
+        try {
+            if (cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        Section section = new Section();
+                        section.setId(cursor.getLong(0));
+                        section.setName(cursor.getString(1));
+                        section.setDescription(cursor.getString(2));
+                        getSurveyQuestion(db, section);
+
+                        survey.getSections().add(section);
+                    } while (cursor.moveToNext());
+                }
+            }
+
+        }catch (SQLException se) {
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME_SECTION + ".";
+            Log.e(AppSettings.TAG, msg, se);
+
+        }
+    }
+
+    /**
+     * Get and insert question from section
+     * @param db
+     * @param section
+     */
+    private void getSurveyQuestion(SQLiteDatabase db, Section section){
+
+
+        String[] fields = new String[] { "ID","NAME","DESCRIPTION","TYPE" };
+        String[] where = new String[] { String.valueOf(section.getId()) };
+
+
+        Cursor cursor = db.query(TBL_NAME_QUESTION, fields, "SECTION=?",where, null, null, null);
+
+        try {
+            if (cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        Question question = new Question();
+                        question.setId(cursor.getLong(0));
+                        question.setName(cursor.getString(1));
+                        question.setDescription(cursor.getString(2));
+                        question.setType(cursor.getInt(3));
+                        getSurveyQuestionResponse(db, question);
+
+                        // TODO pediente de resolver como van a ser este tipo de respueta
+                        //getSurveyQuestionComplex(db, question);
+
+                        section.getInputs().add(question);
+                    } while (cursor.moveToNext());
+                }
+            }
+
+        }catch (SQLException se) {
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME_QUESTION + ".";
+            Log.e(AppSettings.TAG, msg, se);
+
+        }
+    }
+
+
+    /**
+     * Get and insert response from Question
+     * @param db
+     * @param question
+     */
+    private void getSurveyQuestionResponse(SQLiteDatabase db, Question question){
+
+
+        String[] fields = new String[] { "ID","VALUE"};
+        String[] where = new String[] { String.valueOf(question.getId()) };
+
+        Cursor cursor = db.query(TBL_NAME_RESPONSE, fields, "QUESTION=?",where, null, null, null);
+
+
+        try {
+            if (cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        IdValue response = new IdValue();
+                        response.setId(cursor.getLong(0));
+                        response.setValue(cursor.getString(1));
+
+                        question.getResponses().add(response);
+                    } while (cursor.moveToNext());
+                }
+            }
+
+        }catch (SQLException se) {
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME_RESPONSE+ ".";
+            Log.e(AppSettings.TAG, msg, se);
+
+        }
+    }
+
+    /**
+     * Get and insert response from Question
+     * @param db
+     * @param question
+     */
+    private void getSurveyQuestionComplex(SQLiteDatabase db, Question question){
+
+
+        String[] fields = new String[] { "ID","VALUE"};
+        String[] where = new String[] { String.valueOf(question.getId()) };
+
+        Cursor cursor = db.query(TBL_NAME_RESPONSE, fields, "QUESTION=?",where, null, null, null);
+
+
+        try {
+            if (cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        ResponseComplex response = new ResponseComplex();
+                        response.setId(cursor.getLong(0));
+                        response.setValue(cursor.getString(1));
+
+                        question.getFilled_forms().add(response);
+                    } while (cursor.moveToNext());
+                }
+            }
+
+        }catch (SQLException se) {
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME_RESPONSE + ".";
+            Log.e(AppSettings.TAG, msg, se);
+
+        } finally {
+            close();
+        }
+    }
+
+
+    // ----------------------------- INSERT -----------------------------------
 
 	/**
 	 * Insert or update surveys from login process
@@ -133,7 +334,7 @@ public class SurveyDAO extends DriverSQL {
             // Inserta o actualiza un registro
             if ((int) db.insertWithOnConflict(TBL_NAME_RESPONSE_COMPLEX, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
                 db.update(TBL_NAME_RESPONSE_COMPLEX, initialValues, "ID=?", new String[]{String.valueOf(response.getId())});
-                synchronizeResponsesComplexOptions(response.getData(),response.getId(),db);
+                synchronizeResponsesComplexOptions(response.getData(), response.getId(), db);
             }
         }
     }
@@ -156,6 +357,49 @@ public class SurveyDAO extends DriverSQL {
                 db.update(TBL_NAME_RESPONSE_COMPLEX_OPTION, initialValues, "ID=?", new String[]{String.valueOf(response.getId())});
             }
         }
+    }
+
+    /**
+     * Save survey instance
+     * @param survey
+     */
+    public Long saveSurveyInstance(SurveySave survey){
+
+        SQLiteDatabase db = getDBWrite();
+
+        ContentValues initialValues = new ContentValues();
+        initialValues.put("ID_SURVEY", survey.getId());
+        initialValues.put("DATE_INSTANCE", String.valueOf(new Timestamp(new java.util.Date().getTime())));
+        initialValues.put("LATITUDE", survey.getLatitude());
+        initialValues.put("LONGITUDE", survey.getLongitude());
+
+        Long toReturn = db.insert(TBL_NAME_SURVEY_INSTANCE, null, initialValues);
+
+        if(toReturn!=-1) {
+
+            for (IdValue toInsert : survey.getResponses()){
+                saveSurveyInstanceDetail(db,toReturn,toInsert.getId(),toInsert.getValue());
+            }
+        }
+        close();
+        return toReturn;
+    }
+
+    /**
+     * Save survey details
+     * @param db
+     * @param instances
+     * @param question
+     * @param answer
+     */
+    private void saveSurveyInstanceDetail(SQLiteDatabase db, Long instances,Long question, String answer){
+
+        ContentValues initialValues = new ContentValues();
+        initialValues.put("ID_INSTANCE", instances);
+        initialValues.put("ID_QUESTION", question);
+        initialValues.put("ANSWER", answer);
+
+        db.insert(TBL_NAME_SURVEY_INSTANCE_DETAIL,null,initialValues);
     }
 
 

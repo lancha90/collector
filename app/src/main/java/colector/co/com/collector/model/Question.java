@@ -1,5 +1,6 @@
 package colector.co.com.collector.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,14 +11,14 @@ public class Question {
 
     private Long id;
     /**
-     * TEXTO = '1'
+     * TEXTO = '1' OK
      * PARRAFO = '2'
-     * OPCION = '3'
-     * UNICA = '4'
+     * OPCION = '3' OK
+     * UNICA = '4' OK
      * MULTIPLE = '5'
      * FOTO = '6'
-     * FECHA = '7'
-     * NUMERO = '8'
+     * FECHA = '7' OK
+     * NUMERO = '8' OK
      * SCAN = '9'
      * DINAMICA = '10'
      */
@@ -58,6 +59,9 @@ public class Question {
     }
 
     public List<IdValue> getResponses() {
+        if(responses == null){
+            responses = new ArrayList<IdValue>();
+        }
         return responses;
     }
 

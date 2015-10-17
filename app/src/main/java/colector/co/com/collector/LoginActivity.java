@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.util.List;
+
 import colector.co.com.collector.http.AsyncResponse;
 import colector.co.com.collector.http.BackgroundTask;
 import colector.co.com.collector.http.ResourceNetwork;
@@ -20,6 +22,7 @@ import colector.co.com.collector.model.response.LoginResponse;
 import colector.co.com.collector.persistence.dao.SurveyDAO;
 import colector.co.com.collector.session.AppSession;
 import colector.co.com.collector.settings.AppSettings;
+import colector.co.com.collector.utils.Utilities;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -34,8 +37,6 @@ public class LoginActivity extends AppCompatActivity {
         etUsername = (EditText) findViewById(R.id.editTextEmail);
         etPassword = (EditText) findViewById(R.id.editTextPassword);
 
-        AppSession.getInstance().getSurveyDone().add(new Survey(14L,"Done 1","Survey 1 to test",null));
-        AppSession.getInstance().getSurveyDone().add(new Survey(12L,"Done 2","Survey 2 to test",null));
     }
 
 
@@ -43,6 +44,19 @@ public class LoginActivity extends AppCompatActivity {
 
         if(etUsername.getText().toString().trim().equals("") || etPassword.getText().toString().trim().equals("")){
             Toast.makeText(this,getString(R.string.login_error_empty),Toast.LENGTH_LONG).show();
+        }else if(!Utilities.isNetworkConnected(this)) {
+
+            Toast.makeText(this, getString(R.string.common_internet_not_available), Toast.LENGTH_LONG).show();
+            List<Survey> offlineSurvey = new SurveyDAO(this).getSurveyAvailable();
+
+            if(offlineSurvey != null && offlineSurvey.size() > 0) {
+                AppSession.getInstance().setSurveyAvailable(offlineSurvey);
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            }else{
+                Toast.makeText(this, getString(R.string.common_internet_not_available), Toast.LENGTH_LONG).show();
+            }
+
         }else {
 
             LoginRequest toSend = new LoginRequest(etUsername.getText().toString(), etPassword.getText().toString());
