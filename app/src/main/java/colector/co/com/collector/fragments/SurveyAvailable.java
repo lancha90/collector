@@ -16,6 +16,7 @@ import colector.co.com.collector.R;
 import colector.co.com.collector.SurveyActivity;
 import colector.co.com.collector.adapters.SurveyAdapter;
 import colector.co.com.collector.model.Survey;
+import colector.co.com.collector.persistence.dao.SurveyDAO;
 import colector.co.com.collector.session.AppSession;
 import colector.co.com.collector.settings.AppSettings;
 
@@ -51,6 +52,7 @@ public class SurveyAvailable extends Fragment {
         if(idTab.equals(AppSettings.TAB_ID_AVAILABLE_SURVEY)){
             toPrint = AppSession.getInstance().getSurveyAvailable();
         }else if(idTab.equals(AppSettings.TAB_ID_DONE_SURVEY)){
+            AppSession.getInstance().setSurveyDone(new SurveyDAO(getContext()).getSurveyDone());
             toPrint = AppSession.getInstance().getSurveyDone();
         }
 

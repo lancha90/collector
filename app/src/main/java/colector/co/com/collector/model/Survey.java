@@ -11,6 +11,9 @@ public class Survey {
     private String form_name;
     private String form_description;
     private List<Section> sections;
+    private Long instanceId;
+    private String instanceDate;
+    private List<IdValue> instanceAnswers;
 
     public Survey() {
         super();
@@ -25,7 +28,7 @@ public class Survey {
 
 
     public String getSurveyDoneDescription(){
-        return "RESULTADO QUEMADO";
+        return instanceDate;
     }
 
     public Long getForm_id() {
@@ -61,5 +64,41 @@ public class Survey {
 
     public void setSections(List<Section> sections) {
         this.sections = sections;
+    }
+
+    public Long getInstanceId() {
+        return instanceId;
+    }
+
+    public void setInstanceId(Long instanceId) {
+        this.instanceId = instanceId;
+    }
+
+    public String getInstanceDate() {
+        return instanceDate;
+    }
+
+    public void setInstanceDate(String instanceDate) {
+        this.instanceDate = instanceDate;
+    }
+
+    public List<IdValue> getInstanceAnswers() {
+        if(instanceAnswers==null){
+            instanceAnswers=new ArrayList<IdValue>();
+        }
+        return instanceAnswers;
+    }
+
+    public void setInstanceAnswers(List<IdValue> instanceAnswers) {
+        this.instanceAnswers = instanceAnswers;
+    }
+
+    public String getAnswer(Long id){
+        for(IdValue item : instanceAnswers){
+            if(item.getId().equals(id)){
+                return item.getValue();
+            }
+        }
+        return "";
     }
 }

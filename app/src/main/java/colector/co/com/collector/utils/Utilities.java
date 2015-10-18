@@ -2,11 +2,8 @@ package colector.co.com.collector.utils;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
-import android.util.Log;
 
 import java.io.IOException;
-
-import colector.co.com.collector.settings.AppSettings;
 
 /**
  * Created by dherrera on 17/10/15.
@@ -24,11 +21,8 @@ public class Utilities {
 
         if (cm.getActiveNetworkInfo() != null){
 
-            Log.w(AppSettings.TAG,"primera validación");
-
             if(isInternetAvailable()) {
 
-                Log.w(AppSettings.TAG,"segunda validación");
                 return true;
             }
         }
@@ -40,7 +34,7 @@ public class Utilities {
      * Check if device has access to internet
      * @return
      */
-    private static boolean isInternetAvailable() {
+    public static boolean isInternetAvailable() {
         Runtime runtime = Runtime.getRuntime();
         try {
 
@@ -55,5 +49,19 @@ public class Utilities {
         }
 
         return false;
+    }
+
+    /**
+     * Add new element to array
+     * @param array
+     * @param push
+     * @return
+     */
+    public static int[] push(int[] array, int push) {
+        int[] longer = new int[array.length + 1];
+        for (int i = 0; i < array.length; i++)
+            longer[i] = array[i];
+        longer[array.length] = push;
+        return longer;
     }
 }

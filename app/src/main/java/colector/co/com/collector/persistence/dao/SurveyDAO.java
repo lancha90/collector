@@ -44,6 +44,92 @@ public class SurveyDAO extends DriverSQL {
      * Return list of survey available
      * @return
      */
+    public List<Survey> getSurveyDone(){
+
+        db = getDBRead();
+        List<Survey> toReturn = new ArrayList<Survey>();
+
+        String[] fields = new String[] { "ID_SURVEY","DATE_INSTANCE","ID" };
+        String[] fieldsSurvey = new String[] { "ID", "NAME", "DESCRIPTION" };
+        String[] where = new String[] { "FALSE" };
+
+        Cursor cursor = db.query(TBL_NAME_SURVEY_INSTANCE, fields, "STATUS=?", where, null, null, null);
+
+        try {
+            if (cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        Long surveyId = cursor.getLong(0);
+                        String instanceDate = cursor.getString(1);
+                        Long instanceId = cursor.getLong(2);
+
+                        Cursor cursorSurvey = db.query(TBL_NAME, fieldsSurvey, "ID=?", new String[]{String.valueOf(surveyId)}, null, null, null);
+
+                        if (cursorSurvey.getCount() > 0) {
+                            if (cursorSurvey.moveToFirst()) {
+                                do {
+                                    Survey survey = new Survey();
+                                    survey.setForm_id(cursorSurvey.getLong(0));
+                                    survey.setForm_name(cursorSurvey.getString(1));
+                                    survey.setForm_description(cursorSurvey.getString(2));
+                                    survey.setInstanceId(instanceId);
+                                    survey.setInstanceDate(instanceDate);
+                                    getSurveySections(db, survey);
+                                    getSurveyInstanceDetail(db, instanceId, survey);
+
+                                    toReturn.add(survey);
+
+                                } while (cursorSurvey.moveToNext());
+                            }
+                        }
+
+                    } while (cursor.moveToNext());
+
+                }
+            }
+
+        }catch (SQLException se) {
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME + ".";
+            Log.e(AppSettings.TAG, msg, se);
+
+        } finally {
+            close();
+        }
+
+        return toReturn;
+    }
+
+    /**
+     * Save instance details in survey
+     * @param db
+     * @param instances
+     * @param survey
+     */
+    private void getSurveyInstanceDetail(SQLiteDatabase db, Long instances,Survey survey){
+
+        String[] fields = new String[] { "ID_QUESTION","ANSWER" };
+        String[] where = new String[] { String.valueOf(instances) };
+
+        Cursor cursor = db.query(TBL_NAME_SURVEY_INSTANCE_DETAIL, fields, "ID_INSTANCE=?", where, null, null, null);
+        try{
+            Log.w(AppSettings.TAG,TBL_NAME_SURVEY_INSTANCE_DETAIL+ " >>>>>> "+instances);
+            if (cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        survey.getInstanceAnswers().add(new IdValue(cursor.getLong(0), cursor.getString(1)));
+                    } while (cursor.moveToNext());
+                }
+            }
+        }catch (SQLException se) {
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME_SURVEY_INSTANCE_DETAIL + ".";
+            Log.e(AppSettings.TAG, msg, se);
+        }
+    }
+
+    /**
+     * Return list of survey available
+     * @return
+     */
     public List<Survey> getSurveyAvailable(){
 
         db = getDBRead();

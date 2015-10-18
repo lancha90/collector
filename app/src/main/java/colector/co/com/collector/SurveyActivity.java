@@ -35,12 +35,11 @@ public class SurveyActivity extends AppCompatActivity {
     private LinearLayout container;
     private Survey survey = AppSession.getInstance().getCurrentSurvey();
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_survey);
-
-
 
         container = (LinearLayout) findViewById(R.id.survey_contaniner);
 
@@ -54,31 +53,31 @@ public class SurveyActivity extends AppCompatActivity {
                 boolean isValid = true;
                 SurveySave toInsert = new SurveySave();
 
-                for(int i=0; i<container.getChildCount();i++){
+                for (int i = 0; i < container.getChildCount(); i++) {
 
-                    if(container.getChildAt(i) instanceof LinearLayout){
+                    if (container.getChildAt(i) instanceof LinearLayout) {
                         LinearLayout toFind = (LinearLayout) container.getChildAt(i);
 
-                        for(int j=0; j<toFind.getChildCount();j++){
+                        for (int j = 0; j < toFind.getChildCount(); j++) {
 
-                            if(toFind.getChildAt(j) instanceof EditText ){
+                            if (toFind.getChildAt(j) instanceof EditText) {
                                 EditText toProcess = (EditText) toFind.getChildAt(j);
 
-                                if(toProcess != null && !toProcess.getText().toString().isEmpty()){
+                                if (toProcess != null && !toProcess.getText().toString().isEmpty()) {
 
-                                    toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(),toProcess.getText().toString()) );
+                                    toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(), toProcess.getText().toString()));
 
-                                }else{
-                                    isValid=false;
+                                } else {
+                                    isValid = false;
                                 }
 
-                            }else if(toFind.getChildAt(j) instanceof Spinner ){
+                            } else if (toFind.getChildAt(j) instanceof Spinner) {
                                 Spinner toProcess = (Spinner) toFind.getChildAt(j);
 
-                                if(toProcess != null ){
+                                if (toProcess != null) {
                                     toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(), String.valueOf(toProcess.getSelectedView().getTag())));
-                                }else{
-                                    isValid=false;
+                                } else {
+                                    isValid = false;
                                 }
 
 
@@ -87,7 +86,7 @@ public class SurveyActivity extends AppCompatActivity {
                     }
                 }
 
-                if(isValid){
+                if (isValid) {
                     toInsert.setId(survey.getForm_id());
                     // TODO implemnetar el api geografica
                     toInsert.setLatitude("LATITUDE");
@@ -95,17 +94,17 @@ public class SurveyActivity extends AppCompatActivity {
 
                     Long result = new SurveyDAO(SurveyActivity.this).saveSurveyInstance(toInsert);
 
-                    if(result != -1){
-                        Toast.makeText(SurveyActivity.this,"ENCUESTAS GUARDADA id: "+result,Toast.LENGTH_LONG).show();
-                    }else{
+                    if (result != -1) {
+                        Toast.makeText(SurveyActivity.this, "ENCUESTAS GUARDADA id: " + result, Toast.LENGTH_LONG).show();
+                    } else {
                         // TODO internacionalizar mensaje
-                        Toast.makeText(SurveyActivity.this,"Oops! Ocurrio un problema intente mas tarde",Toast.LENGTH_LONG).show();
+                        Toast.makeText(SurveyActivity.this, "Oops! Ocurrio un problema intente mas tarde", Toast.LENGTH_LONG).show();
                     }
 
 
-                }else{
+                } else {
                     // TODO internacionalizar mensaje
-                    Toast.makeText(SurveyActivity.this,"Debe diligenciar todos los campos",Toast.LENGTH_LONG).show();
+                    Toast.makeText(SurveyActivity.this, "Debe diligenciar todos los campos", Toast.LENGTH_LONG).show();
                 }
 
             }
@@ -201,6 +200,11 @@ public class SurveyActivity extends AppCompatActivity {
         EditText toReturn = new EditText(this);
         toReturn.setTag(id);
         setLayoutParams(toReturn);
+        // set value if is modified
+        if(survey.getInstanceId() != null){
+            toReturn.setText(survey.getAnswer(id));
+        }
+
         return toReturn;
     }
 
@@ -219,6 +223,10 @@ public class SurveyActivity extends AppCompatActivity {
         toReturn.setOnClickListener(listener);
         toReturn.setFocusable(false);
         toReturn.setTag(id);
+        // set value if is modified
+        if(survey.getInstanceId() != null){
+            toReturn.setText(survey.getAnswer(id));
+        }
         setLayoutParams(toReturn);
         return toReturn;
     }
