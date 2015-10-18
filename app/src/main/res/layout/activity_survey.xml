@@ -6,5 +6,4 @@
     tools:context="colector.co.com.collector.SurveyActivity"
     android:id="@+id/survey_contaniner">
 
-
 </LinearLayout>

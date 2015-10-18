@@ -1,17 +1,23 @@
 package colector.co.com.collector.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import colector.co.com.collector.R;
+import colector.co.com.collector.SurveyActivity;
 import colector.co.com.collector.model.Survey;
+import colector.co.com.collector.persistence.dao.SurveyDAO;
+import colector.co.com.collector.session.AppSession;
 import colector.co.com.collector.settings.AppSettings;
 
 /**
@@ -32,7 +38,7 @@ public class SurveyAdapter extends ArrayAdapter<Survey> {
 
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
 
         Survey item = (Survey) this.items.get(position);
 
@@ -47,11 +53,46 @@ public class SurveyAdapter extends ArrayAdapter<Survey> {
         if(idTab.equals(AppSettings.TAB_ID_AVAILABLE_SURVEY)){
             row_description.setText(item.getForm_description());
         }else if(idTab.equals(AppSettings.TAB_ID_DONE_SURVEY)){
+
             row_description.setText(item.getSurveyDoneDescription());
+
+            ImageButton deleteButton = (ImageButton) row.findViewById(R.id.buttonDeleteSurvey);
+            deleteButton.setTag(item.getInstanceId());
+            deleteButton.setVisibility(View.VISIBLE);
+            deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    new SurveyDAO(view.getContext()).deleteSurveyInstance(Long.parseLong(view.getTag().toString()));
+                }
+            });
+            ImageButton uploadUpload = (ImageButton) row.findViewById(R.id.buttonUploadSurvey);
+            uploadUpload.setTag(item.getInstanceId());
+            uploadUpload.setVisibility(View.VISIBLE);
+            uploadUpload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(view.getContext(), "Upload registro ID: " + view.getTag().toString(), Toast.LENGTH_LONG).show();
+                }
+            });
+
+            ImageButton editUpload = (ImageButton) row.findViewById(R.id.buttonEditSurvey);
+            editUpload.setTag(item.getInstanceId());
+            editUpload.setVisibility(View.VISIBLE);
+            editUpload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    AppSession.getInstance().setCurrentSurvey(items.get(position));
+                    Intent intent = new Intent(getContext(), SurveyActivity.class);
+                    context.startActivity(intent);
+                }
+            });
+
         }
 
         return row;
     }
+
+
 
 
 }

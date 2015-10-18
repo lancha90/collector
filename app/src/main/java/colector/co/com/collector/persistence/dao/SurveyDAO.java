@@ -489,17 +489,35 @@ public class SurveyDAO extends DriverSQL {
     }
 
 
-	/**
-	 * Delete all surveys
-	 */
-	public void deleteAllSurveys() {
-		deleteAll(TBL_NAME);
-	}
-	/**
-	 * Delete all sections
-	 */
-	public void deleteAllSections() {
-		deleteAll(TBL_NAME_SECTION);
-	}
+
+    /**
+     * Delete a survey instance
+     * @param instances
+     */
+    public int deleteSurveyInstance(Long instances){
+
+        SQLiteDatabase db = getDBWrite();
+        String[] where = new String[] { String.valueOf(instances) };
+
+        int toReturn = db.delete(TBL_NAME_SURVEY_INSTANCE, "ID=?", where);
+
+        if(toReturn==1) {
+            deleteSurveyInstanceDetail(db,instances);
+        }
+        close();
+        return toReturn;
+    }
+
+    /**
+     * Delete survey instance details
+     * @param db
+     * @param instances
+     */
+    private void deleteSurveyInstanceDetail(SQLiteDatabase db, Long instances){
+
+        String[] where = new String[] { String.valueOf(instances) };
+        db.delete(TBL_NAME_SURVEY_INSTANCE_DETAIL, "ID_INSTANCE=?", where);
+    }
+
 
 }

@@ -13,12 +13,13 @@
         android:layout_marginLeft="5dp"
         android:layout_marginTop="5dp"
         android:layout_weight="9"
-        android:orientation="vertical" >
+        android:orientation="horizontal" >
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_weight="8">
 
             <TextView
                 android:id="@+id/adapter_survey_title"
@@ -32,6 +33,41 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="name" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="2">
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/buttonDeleteSurvey"
+                android:src="@android:drawable/ic_menu_delete"
+                android:layout_margin="5dp"
+                android:visibility="gone"
+                android:focusable="false"
+                />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/buttonUploadSurvey"
+                android:src="@android:drawable/stat_notify_sync"
+                android:layout_margin="5dp"
+                android:visibility="gone"
+                android:focusable="false"/>
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/buttonEditSurvey"
+                android:src="@android:drawable/ic_menu_edit"
+                android:layout_margin="5dp"
+                android:visibility="gone"
+                android:focusable="false"/>
 
         </LinearLayout>
 

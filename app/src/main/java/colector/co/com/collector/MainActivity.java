@@ -23,15 +23,11 @@ public class MainActivity extends FragmentActivity {
 
 
         mTabHost.addTab(
-                mTabHost.newTabSpec(AppSettings.TAB_ID_AVAILABLE_SURVEY).setIndicator("Tab 1", null),
+                mTabHost.newTabSpec(AppSettings.TAB_ID_AVAILABLE_SURVEY).setIndicator("Formularios Disponibles", null),
                 SurveyAvailable.class, null);
         mTabHost.addTab(
-                mTabHost.newTabSpec(AppSettings.TAB_ID_DONE_SURVEY).setIndicator("Tab 2", null),
+                mTabHost.newTabSpec(AppSettings.TAB_ID_DONE_SURVEY).setIndicator("Formularios Diligenciados", null),
                 SurveyAvailable.class, null);
     }
-
-
-
-
 
 }

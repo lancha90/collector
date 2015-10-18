@@ -8,7 +8,9 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
+import android.view.Gravity;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -141,15 +143,20 @@ public class SurveyActivity extends AppCompatActivity {
                     linear.addView(buildTextView(question.getName()));
                     linear.addView(buildEditText(question.getId()));
                     break;
-                // TODO implementar el multilinea
                 // input text multiline
                 case 2:
-
+                    linear.addView(buildTextView(question.getName()));
+                    linear.addView(buildEditTextMultiline(question.getId()));
                     break;
                 // opcion o combobox
                 case 3:
                     linear.addView(buildTextView(question.getName()));
                     linear.addView(buildSpinner(question.getResponses(),question.getId()));
+                    break;
+                // TODO implementar el tipo de pregunta FOTO
+                // picture
+                case 6:
+
                     break;
                 // date
                 case 7:
@@ -218,6 +225,24 @@ public class SurveyActivity extends AppCompatActivity {
         return toReturn;
     }
 
+    /**
+     * Create programatically a input multiline
+     * @return
+     */
+    private EditText buildEditTextMultiline(Long id){
+        EditText toReturn = buildEditText(id);
+        toReturn.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT ));
+        toReturn.setGravity(Gravity.TOP);
+        toReturn.setSingleLine(false);
+        toReturn.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
+        toReturn.setMaxLines(5);
+        toReturn.setLines(5);
+
+        return toReturn;
+    }
+
     private EditText buildEditText(View.OnClickListener listener,Long id){
         EditText toReturn = new EditText(this);
         toReturn.setOnClickListener(listener);
@@ -272,11 +297,9 @@ public class SurveyActivity extends AppCompatActivity {
                 LinearLayout.LayoutParams.WRAP_CONTENT);
 
         if (view instanceof TextView) {
-            ((TextView) view).setLayoutParams(layoutWRAP);
-        } else if (view instanceof LinearLayout) {
-            ((LinearLayout) view).setLayoutParams(layoutMATCH);
-        } else if (view instanceof EditText) {
-            ((EditText) view).setLayoutParams(layoutMATCH);
+            view.setLayoutParams(layoutWRAP);
+        } else if (view instanceof LinearLayout || view instanceof EditText) {
+            view.setLayoutParams(layoutMATCH);
         }
     }
 

@@ -12,7 +12,7 @@ public class Question {
     private Long id;
     /**
      * TEXTO = '1' OK
-     * PARRAFO = '2'
+     * PARRAFO = '2' OK
      * OPCION = '3' OK
      * UNICA = '4' OK
      * MULTIPLE = '5'
