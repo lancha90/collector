@@ -1,26 +1,43 @@
 package colector.co.com.collector;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.util.Base64;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import colector.co.com.collector.adapters.SurveyAdapterOptionalType;
@@ -36,6 +53,10 @@ public class SurveyActivity extends AppCompatActivity {
 
     private LinearLayout container;
     private Survey survey = AppSession.getInstance().getCurrentSurvey();
+    static final int REQUEST_TAKE_PHOTO = 1;
+    File photoFile = null;
+    String mCurrentPhotoPath;
+
 
 
     @Override
@@ -83,6 +104,15 @@ public class SurveyActivity extends AppCompatActivity {
                                 }
 
 
+                            }else if (toFind.getChildAt(j) instanceof ImageView) {
+                                ImageView toProcess = (ImageView) toFind.getChildAt(j);
+
+                                if (toProcess != null) {
+                                    String base64  = getEncoded64ImageStringFromBitmap(((BitmapDrawable) toProcess.getDrawable()).getBitmap());
+                                    toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(), base64));
+                                } else {
+                                    isValid = false;
+                                }
                             }
                         }
                     }
@@ -156,7 +186,14 @@ public class SurveyActivity extends AppCompatActivity {
                 // TODO implementar el tipo de pregunta FOTO
                 // picture
                 case 6:
-
+					linear.addView(buildImageView(question.getId()));
+                    final Long id = question.getId();
+                    linear.addView(buildButton(question.getName(), new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dispatchTakePictureIntent(id);
+                        }
+                    }));
                     break;
                 // date
                 case 7:
@@ -174,7 +211,6 @@ public class SurveyActivity extends AppCompatActivity {
                     linear.addView(buildTextView(question.getName()));
                     linear.addView(buildEditTextNumeric(question.getId()));
                     break;
-
             }
 
         }
@@ -183,6 +219,69 @@ public class SurveyActivity extends AppCompatActivity {
 
     }
 
+    private void dispatchTakePictureIntent(Long id) {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(photoFile));
+                Bundle extras = getIntent().putExtra("idImageView", id).getExtras();
+
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO,extras);
+            }
+        }
+
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        String storageDir = Environment.getExternalStorageDirectory() + "/collector";
+        File dir = new File(storageDir);
+        if (!dir.exists())
+            dir.mkdir();
+
+        File image = new File(storageDir + "/" + imageFileName + ".jpg");
+        mCurrentPhotoPath = image.getAbsolutePath();
+
+        return image;
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
+            setPic();
+        }
+    }
+    private void setPic() {
+        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath);
+        ImageView imageView = null;
+        Long idImageView = getIntent().getExtras().getLong("idImageView", -1);
+        if (idImageView > -1){
+            imageView = (ImageView) findViewById(idImageView.intValue());
+            imageView.setImageBitmap(bitmap);
+            imageView.getLayoutParams().height = 100;
+            imageView.getLayoutParams().width = 100;
+        }
+    }
+
+    public String getEncoded64ImageStringFromBitmap(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+        byte[] byteFormat = stream.toByteArray();
+        // get the base 64 string
+        String imgString = Base64.encodeToString(byteFormat, Base64.NO_WRAP);
+        return imgString;
+    }
 
     // ---------- CREATE COMPONENTS -----------
 
@@ -265,7 +364,7 @@ public class SurveyActivity extends AppCompatActivity {
         Spinner toReturn = new Spinner(this);
         toReturn.setTag(id);
         setLayoutParams(toReturn);
-        toReturn.setAdapter(new SurveyAdapterOptionalType(this,new ArrayList<IdValue>(responses)));
+        toReturn.setAdapter(new SurveyAdapterOptionalType(this, new ArrayList<IdValue>(responses)));
 
         return toReturn;
     }
@@ -282,7 +381,18 @@ public class SurveyActivity extends AppCompatActivity {
         return toReturn;
     }
 
-
+    /**
+     * Create programtically a ImageView
+     * @param id
+     * @return ImageView with text @param id
+     */
+    private ImageView buildImageView(Long id) {
+        ImageView toReturn = new ImageView(this);
+        toReturn.setId(id.intValue());
+        toReturn.setTag(id);
+        setLayoutParams(toReturn);
+        return toReturn;
+    }
 
 
     // --------- UTILITIES --------------
