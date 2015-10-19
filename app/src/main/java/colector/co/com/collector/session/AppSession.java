@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import colector.co.com.collector.model.Survey;
+import colector.co.com.collector.model.response.ResponseData;
 
 /**
  * Created by dherrera on 11/10/15.
@@ -11,7 +12,7 @@ import colector.co.com.collector.model.Survey;
 public class AppSession {
 
     private static AppSession singletonObject;
-    private String token;
+    private ResponseData user;
     private List<Survey> surveyAvailable;
     private List<Survey> surveyDone;
     private Survey currentSurvey;
@@ -57,12 +58,12 @@ public class AppSession {
         this.surveyAvailable = surveyAvailable;
     }
 
-    public String getToken() {
-        return token;
+    public ResponseData getUser() {
+        return user;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setUser(ResponseData user) {
+        this.user = user;
     }
 
     public Survey getCurrentSurvey() {

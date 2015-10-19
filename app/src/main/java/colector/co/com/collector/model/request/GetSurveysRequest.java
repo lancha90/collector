@@ -5,21 +5,21 @@ package colector.co.com.collector.model.request;
  */
 public class GetSurveysRequest {
 
-    private String token;
+    private Long colector_id;
 
     public GetSurveysRequest() {
         super();
     }
-    public GetSurveysRequest(String token) {
+    public GetSurveysRequest(Long colector_id) {
         super();
-        this.token = token;
+        this.colector_id=colector_id;
     }
 
-    public String getToken() {
-        return token;
+    public Long getColector_id() {
+        return colector_id;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setColector_id(Long colector_id) {
+        this.colector_id = colector_id;
     }
 }

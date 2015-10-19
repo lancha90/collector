@@ -39,7 +39,8 @@
         android:singleLine="true"
         android:maxLines="1"
         android:background="@drawable/text_line"
-        android:id="@+id/editTextEmail" />
+        android:id="@+id/editTextEmail"
+        android:text="colectortest" />
 
     <EditText
         android:layout_width="match_parent"
@@ -53,7 +54,8 @@
         android:layout_marginTop="30dp"
         android:singleLine="true"
         android:maxLines="1"
-        android:id="@+id/editTextPassword" />
+        android:id="@+id/editTextPassword"
+        android:text="test" />
 
     <Button
         android:layout_width="match_parent"

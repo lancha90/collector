@@ -60,6 +60,8 @@ public class LoginActivity extends AppCompatActivity {
         }else {
 
             LoginRequest toSend = new LoginRequest(etUsername.getText().toString(), etPassword.getText().toString());
+            // TODO obtener el id del dispositivo
+            toSend.setTabletId("001");
             AsyncResponse callback = new AsyncResponse() {
                 @Override
                 public void callback(Object output) {
@@ -68,8 +70,15 @@ public class LoginActivity extends AppCompatActivity {
                         LoginResponse response = (LoginResponse) output;
 
                         if(response.getResponseCode().equals(AppSettings.HTTP_OK) ){
-                            // Invoke the survey synchronize
-                            getSurveys();
+                            if(response.getResponseData().get(0) != null) {
+                                AppSession.getInstance().setUser(response.getResponseData().get(0));
+                                // Invoke the survey synchronize
+                                getSurveys();
+                            }else{
+                                // TODO internacionalizar mensaje
+                                Toast.makeText(LoginActivity.this,"Response no valido, contacte al administrador!",Toast.LENGTH_LONG).show();
+                            }
+
 
                         }else{
                             Toast.makeText(LoginActivity.this,response.getResponseDescription(),Toast.LENGTH_LONG).show();
@@ -93,7 +102,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void getSurveys(){
 
-        GetSurveysRequest toSend = new GetSurveysRequest(AppSession.getInstance().getToken());
+        GetSurveysRequest toSend = new GetSurveysRequest(AppSession.getInstance().getUser().getColector_id());
         AsyncResponse callback = new AsyncResponse() {
             @Override
             public void callback(Object output) {

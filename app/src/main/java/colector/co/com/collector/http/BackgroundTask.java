@@ -3,10 +3,12 @@ package colector.co.com.collector.http;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
+
 import com.google.gson.Gson;
 
 import colector.co.com.collector.R;
 import colector.co.com.collector.model.response.ErrorResponse;
+import colector.co.com.collector.session.AppSession;
 
 /**
  * Clase generica para el consumo de servicios del API Rest </br>
@@ -33,6 +35,7 @@ public class BackgroundTask extends AsyncTask<String, Integer, Object> {
 		this.param = param;
 		this.responseClass = responseClass;
 		this.response = response;
+
 	}
 
 	@Override
@@ -44,6 +47,10 @@ public class BackgroundTask extends AsyncTask<String, Integer, Object> {
 			// Headers
 			request.contentType("application/json");
 			request.acceptCharset("application/json");
+			if(AppSession.getInstance().getUser() != null) {
+				request.header("token",AppSession.getInstance().getUser().getToken());
+			}
+
 			// SSL Configuration
 			request.trustAllCerts();
 			request.trustAllHosts();
