@@ -4,13 +4,16 @@
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:background="#eaecee">
+    android:background="@color/background_color">
 
     <ListView
         android:id="@+id/list_items"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_vertical|center_horizontal"
-        android:focusable="true"/>
+        android:focusable="true"
+        android:divider="#02BBD2"
+        android:dividerHeight="2px"
+        android:layout_margin="10dp" />
 
 </LinearLayout>

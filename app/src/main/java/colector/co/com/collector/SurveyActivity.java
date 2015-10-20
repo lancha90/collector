@@ -5,24 +5,24 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.util.Base64;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -31,6 +31,7 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -68,8 +69,7 @@ public class SurveyActivity extends AppCompatActivity {
 
         buildSurvey();
 
-        // TODO internacionalizar mensaje
-        container.addView(buildButton("GUARDAR", new View.OnClickListener() {
+        container.addView(buildButton(getString(R.string.survey_save), new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -104,11 +104,11 @@ public class SurveyActivity extends AppCompatActivity {
                                 }
 
 
-                            }else if (toFind.getChildAt(j) instanceof ImageView) {
+                            } else if (toFind.getChildAt(j) instanceof ImageView) {
                                 ImageView toProcess = (ImageView) toFind.getChildAt(j);
 
-                                if (toProcess != null) {
-                                    String base64  = getEncoded64ImageStringFromBitmap(((BitmapDrawable) toProcess.getDrawable()).getBitmap());
+                                if (toProcess != null && toProcess.getDrawable() != null) {
+                                    String base64 = getEncoded64ImageStringFromBitmap(((BitmapDrawable) toProcess.getDrawable()).getBitmap());
                                     toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(), base64));
                                 } else {
                                     isValid = false;
@@ -127,20 +127,18 @@ public class SurveyActivity extends AppCompatActivity {
                     Long result = new SurveyDAO(SurveyActivity.this).saveSurveyInstance(toInsert);
 
                     if (result != -1) {
-                        Toast.makeText(SurveyActivity.this, "ENCUESTAS GUARDADA id: " + result, Toast.LENGTH_LONG).show();
+                        Toast.makeText(SurveyActivity.this, getString(R.string.survey_save_ok, String.valueOf(result)), Toast.LENGTH_LONG).show();
+                        finish();
                     } else {
-                        // TODO internacionalizar mensaje
-                        Toast.makeText(SurveyActivity.this, "Oops! Ocurrio un problema intente mas tarde", Toast.LENGTH_LONG).show();
+                        Toast.makeText(SurveyActivity.this, getString(R.string.survey_save_error), Toast.LENGTH_LONG).show();
                     }
 
-
                 } else {
-                    // TODO internacionalizar mensaje
-                    Toast.makeText(SurveyActivity.this, "Debe diligenciar todos los campos", Toast.LENGTH_LONG).show();
+                    Toast.makeText(SurveyActivity.this, getString(R.string.survey_save_error_field), Toast.LENGTH_LONG).show();
                 }
 
             }
-        })  );
+        }));
 
 
     }
@@ -148,10 +146,9 @@ public class SurveyActivity extends AppCompatActivity {
     private void buildSurvey(){
 
         // Print survey name
-        container.addView(buildTextView(survey.getForm_name()));
+        setTitle(survey.getForm_name());
 
         for(Section section : survey.getSections()){
-            container.addView(buildSeparator());
             buildSection(section);
         }
 
@@ -163,6 +160,7 @@ public class SurveyActivity extends AppCompatActivity {
         LinearLayout linear = new LinearLayout(this);
         linear.setOrientation(LinearLayout.VERTICAL);
         linear.addView(buildTextView(section.getName()));
+        linear.addView(buildSeparator());
         setLayoutParams(linear);
 
         for(Question question : section.getInputs()){
@@ -183,7 +181,6 @@ public class SurveyActivity extends AppCompatActivity {
                     linear.addView(buildTextView(question.getName()));
                     linear.addView(buildSpinner(question.getResponses(),question.getId()));
                     break;
-                // TODO implementar el tipo de pregunta FOTO
                 // picture
                 case 6:
 					linear.addView(buildImageView(question.getId()));
@@ -290,11 +287,27 @@ public class SurveyActivity extends AppCompatActivity {
      * @param label
      * @return
      */
-    private Button buildButton(String label,View.OnClickListener listener){
-        Button toReturn = new Button(this);
-        toReturn.setText(label);
-        toReturn.setOnClickListener(listener);
-        setLayoutParams(toReturn);
+    private LinearLayout buildButton(String label,View.OnClickListener listener){
+
+        LinearLayout toReturn = new LinearLayout(this);
+
+        Button button = new Button(this);
+        button.setText(label);
+        button.setOnClickListener(listener);
+        button.setBackgroundResource(R.drawable.rounded_shape);
+        button.setTextColor(Color.parseColor("#FFFFFF"));
+        button.setPadding(15, 10, 15, 10);
+        button.setMinWidth(300);
+
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(30,30,30,30);
+
+        toReturn.setLayoutParams(layoutParams);
+        toReturn.setGravity(Gravity.CENTER);
+        toReturn.addView(button);
+
         return toReturn;
     }
 
@@ -305,7 +318,6 @@ public class SurveyActivity extends AppCompatActivity {
     private EditText buildEditText(Long id){
         EditText toReturn = new EditText(this);
         toReturn.setTag(id);
-        setLayoutParams(toReturn);
         // set value if is modified
         if(survey.getInstanceId() != null){
             toReturn.setText(survey.getAnswer(id));
@@ -351,7 +363,6 @@ public class SurveyActivity extends AppCompatActivity {
         if(survey.getInstanceId() != null){
             toReturn.setText(survey.getAnswer(id));
         }
-        setLayoutParams(toReturn);
         return toReturn;
     }
 
@@ -365,7 +376,6 @@ public class SurveyActivity extends AppCompatActivity {
         toReturn.setTag(id);
         setLayoutParams(toReturn);
         toReturn.setAdapter(new SurveyAdapterOptionalType(this, new ArrayList<IdValue>(responses)));
-
         return toReturn;
     }
 
@@ -378,6 +388,7 @@ public class SurveyActivity extends AppCompatActivity {
         TextView toReturn = new TextView(this);
         toReturn.setText(label);
         setLayoutParams(toReturn);
+        toReturn.setTextColor(ContextCompat.getColor(this, R.color.text_color));
         return toReturn;
     }
 
@@ -406,7 +417,8 @@ public class SurveyActivity extends AppCompatActivity {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
 
-        if (view instanceof TextView) {
+        if (view instanceof TextView ) {
+            layoutWRAP.setMargins(0,15,0,15);
             view.setLayoutParams(layoutWRAP);
         } else if (view instanceof LinearLayout || view instanceof EditText) {
             view.setLayoutParams(layoutMATCH);
@@ -420,6 +432,35 @@ public class SurveyActivity extends AppCompatActivity {
         toReturn.setLayoutParams(layoutParams);
         toReturn.setBackgroundColor(Color.rgb(51, 51, 51));
         return toReturn;
+    }
+
+    /**
+     * Back button event
+     */
+    @Override
+    public void onBackPressed() {
+        exitFormAlert();
+    }
+    /**
+     * Back button event
+     */
+    public void exitFormAlert(){
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setMessage(R.string.survey_back)
+                .setPositiveButton("Descartar", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        // TODO revisar el cierre de la actividad
+
+                        finish();
+                    }
+
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
 

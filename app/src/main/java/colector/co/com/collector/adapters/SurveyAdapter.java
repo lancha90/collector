@@ -40,7 +40,7 @@ public class SurveyAdapter extends ArrayAdapter<Survey> {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
 
-        Survey item = (Survey) this.items.get(position);
+        final Survey item = (Survey) this.items.get(position);
 
         LayoutInflater inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View row = inflater.inflate(R.layout.adapter_survey, parent, false);
@@ -62,7 +62,10 @@ public class SurveyAdapter extends ArrayAdapter<Survey> {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    Toast.makeText(view.getContext(), context.getString(R.string.survey_delete_ok,view.getTag().toString()), Toast.LENGTH_LONG).show();
                     new SurveyDAO(view.getContext()).deleteSurveyInstance(Long.parseLong(view.getTag().toString()));
+                    items.remove(item);
+                    SurveyAdapter.this.notifyDataSetChanged();
                 }
             });
             ImageButton uploadUpload = (ImageButton) row.findViewById(R.id.buttonUploadSurvey);

@@ -112,7 +112,7 @@ public class SurveyDAO extends DriverSQL {
 
         Cursor cursor = db.query(TBL_NAME_SURVEY_INSTANCE_DETAIL, fields, "ID_INSTANCE=?", where, null, null, null);
         try{
-            Log.w(AppSettings.TAG,TBL_NAME_SURVEY_INSTANCE_DETAIL+ " >>>>>> "+instances);
+            Log.w(AppSettings.TAG, TBL_NAME_SURVEY_INSTANCE_DETAIL + " >>>>>> " + instances);
             if (cursor.getCount() > 0) {
                 if (cursor.moveToFirst()) {
                     do {
@@ -287,7 +287,7 @@ public class SurveyDAO extends DriverSQL {
         String[] fields = new String[] { "ID","VALUE"};
         String[] where = new String[] { String.valueOf(question.getId()) };
 
-        Cursor cursor = db.query(TBL_NAME_RESPONSE, fields, "QUESTION=?",where, null, null, null);
+        Cursor cursor = db.query(TBL_NAME_RESPONSE, fields, "QUESTION=?", where, null, null, null);
 
 
         try {
@@ -323,6 +323,7 @@ public class SurveyDAO extends DriverSQL {
 	public void synchronizeSurvey(List<Survey> surveys) {
 		SQLiteDatabase db = getDBWrite();
 
+        try{
 		for (Survey survey:surveys){
 			ContentValues initialValues = new ContentValues();
 			initialValues.put("ID", survey.getForm_id());
@@ -332,10 +333,18 @@ public class SurveyDAO extends DriverSQL {
 			// Inserta o actualiza un registro
 			if ((int) db.insertWithOnConflict(TBL_NAME, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
 				db.update(TBL_NAME, initialValues, "ID=?", new String[]{String.valueOf(survey.getForm_id())});
-                synchronizeSections(survey.getSections(), survey.getForm_id(), db);
 			}
-		}
-		close();
+
+            synchronizeSections(survey.getSections(), survey.getForm_id(), db);
+
+		}}
+            catch (SQLException se) {
+                String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME + ".";
+                Log.e(AppSettings.TAG, msg, se);
+
+            } finally {
+                close();
+            }
 	}
 
 	/**
@@ -354,8 +363,8 @@ public class SurveyDAO extends DriverSQL {
 			// Inserta o actualiza un registro
 			if ((int) db.insertWithOnConflict(TBL_NAME_SECTION, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
 				db.update(TBL_NAME_SECTION, initialValues, "ID=?", new String[]{String.valueOf(section.getId())});
-                synchronizeQuestions(section.getInputs(), section.getId(), db);
 			}
+            synchronizeQuestions(section.getInputs(), section.getId(), db);
 		}
 	}
 
@@ -378,9 +387,10 @@ public class SurveyDAO extends DriverSQL {
             // Inserta o actualiza un registro
             if ((int) db.insertWithOnConflict(TBL_NAME_QUESTION, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
                 db.update(TBL_NAME_QUESTION, initialValues, "ID=?", new String[]{String.valueOf(question.getId())});
-                synchronizeResponses(question.getResponses(), question.getId(), db);
-                synchronizeResponsesComplex(question.getFilled_forms(), question.getId(), db);
             }
+
+            synchronizeResponses(question.getResponses(), question.getId(), db);
+            synchronizeResponsesComplex(question.getFilled_forms(), question.getId(), db);
         }
     }
 
@@ -410,16 +420,20 @@ public class SurveyDAO extends DriverSQL {
      * @param db db conection
      */
     private void synchronizeResponsesComplex(List<ResponseComplex> responses, Long question,SQLiteDatabase db){
-        for (ResponseComplex response: responses) {
 
-            ContentValues initialValues = new ContentValues();
-            initialValues.put("ID", response.getId());
-            initialValues.put("VALUE", response.getValue());
-            initialValues.put("QUESTION", question);
+        if(responses != null) {
 
-            // Inserta o actualiza un registro
-            if ((int) db.insertWithOnConflict(TBL_NAME_RESPONSE_COMPLEX, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
-                db.update(TBL_NAME_RESPONSE_COMPLEX, initialValues, "ID=?", new String[]{String.valueOf(response.getId())});
+            for (ResponseComplex response : responses) {
+
+                ContentValues initialValues = new ContentValues();
+                initialValues.put("ID", response.getId());
+                initialValues.put("VALUE", response.getValue());
+                initialValues.put("QUESTION", question);
+
+                // Inserta o actualiza un registro
+                if ((int) db.insertWithOnConflict(TBL_NAME_RESPONSE_COMPLEX, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
+                    db.update(TBL_NAME_RESPONSE_COMPLEX, initialValues, "ID=?", new String[]{String.valueOf(response.getId())});
+                }
                 synchronizeResponsesComplexOptions(response.getData(), response.getId(), db);
             }
         }

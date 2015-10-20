@@ -9,7 +9,7 @@ import java.util.List;
 public class Question {
 
 
-    private Long id;
+    private Long input_id;
     /**
      * TEXTO = '1' OK
      * PARRAFO = '2' OK
@@ -34,7 +34,7 @@ public class Question {
     }
 
     public Question(Long id, int type, List<IdValue> responses, List<ResponseComplex> filled_forms, String name, String description) {
-        this.id = id;
+        this.input_id = id;
         this.type = type;
         this.responses = responses;
         this.filled_forms = filled_forms;
@@ -43,11 +43,11 @@ public class Question {
     }
 
     public Long getId() {
-        return id;
+        return input_id;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        this.input_id = id;
     }
 
     public int getType() {

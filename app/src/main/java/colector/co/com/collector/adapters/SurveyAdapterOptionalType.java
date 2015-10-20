@@ -1,6 +1,7 @@
 package colector.co.com.collector.adapters;
 
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +44,7 @@ public class SurveyAdapterOptionalType extends ArrayAdapter<IdValue> {
 
         TextView row_name = (TextView) row.findViewById(R.id.adapter_survey_item_option);
         row_name.setText(item.getValue());
+        row_name.setTextColor(ContextCompat.getColor(this.context, R.color.text_color));
 
         row.setTag(item.getId());
 

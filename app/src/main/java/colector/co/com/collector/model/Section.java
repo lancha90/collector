@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class Section {
 
-    private Long id;
+    private Long section_id;
     private String name;
     private String description;
     private List<Question> inputs;
@@ -19,18 +19,18 @@ public class Section {
 
     public Section(Long id,String name, String description, List<Question> inputs) {
         super();
-        this.id=id;
+        this.section_id=id;
         this.name = name;
         this.description = description;
         this.inputs = inputs;
     }
 
     public Long getId() {
-        return id;
+        return section_id;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        this.section_id = id;
     }
 
     public String getName() {
