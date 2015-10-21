@@ -213,7 +213,7 @@ public class SurveyDAO extends DriverSQL {
         String[] where = new String[] { String.valueOf(section.getId()) };
 
 
-        Cursor cursor = db.query(TBL_NAME_QUESTION, fields, "SECTION=?",where, null, null, null);
+        Cursor cursor = db.query(TBL_NAME_QUESTION, fields, "SECTION=?", where, null, null, null);
 
         try {
             if (cursor.getCount() > 0) {
@@ -253,7 +253,7 @@ public class SurveyDAO extends DriverSQL {
         String[] fields = new String[] { "ID","VALUE"};
         String[] where = new String[] { String.valueOf(question.getId()) };
 
-        Cursor cursor = db.query(TBL_NAME_RESPONSE, fields, "QUESTION=?",where, null, null, null);
+        Cursor cursor = db.query(TBL_NAME_RESPONSE, fields, "QUESTION=?", where, null, null, null);
 
 
         try {
@@ -460,6 +460,26 @@ public class SurveyDAO extends DriverSQL {
     }
 
     /**
+     * Modify survey instance
+     * @param survey
+     */
+    public Long modifySurveyInstance(SurveySave survey){
+
+        SQLiteDatabase db = getDBWrite();
+        try{
+        for (IdValue toInsert : survey.getResponses()){
+            modifySurveyInstanceDetail(db,survey.getInstanceId(),toInsert.getId(),toInsert.getValue());
+        }}catch (SQLException se) {
+            String msg = "Ha ocurrido un error actualizando una encuesta.";
+            Log.e(AppSettings.TAG, msg, se);
+            return -1L;
+        } finally {
+            close();
+        }
+        return survey.getInstanceId();
+    }
+
+    /**
      * Save survey instance
      * @param survey
      */
@@ -499,7 +519,28 @@ public class SurveyDAO extends DriverSQL {
         initialValues.put("ID_QUESTION", question);
         initialValues.put("ANSWER", answer);
 
-        db.insert(TBL_NAME_SURVEY_INSTANCE_DETAIL,null,initialValues);
+        // Inserta o actualiza un registro
+        if ((int) db.insertWithOnConflict(TBL_NAME_SURVEY_INSTANCE_DETAIL, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
+            db.update(TBL_NAME_SURVEY_INSTANCE_DETAIL, initialValues, "ID_INSTANCE=? AND ID_QUESTION=?", new String[]{String.valueOf(instances),String.valueOf(question)});
+        }
+    }
+
+    /**
+     * Save survey details
+     * @param db
+     * @param instances
+     * @param question
+     * @param answer
+     */
+    private void modifySurveyInstanceDetail(SQLiteDatabase db, Long instances,Long question, String answer){
+
+        ContentValues initialValues = new ContentValues();
+        initialValues.put("ID_INSTANCE", instances);
+        initialValues.put("ID_QUESTION", question);
+        initialValues.put("ANSWER", answer);
+
+        db.update(TBL_NAME_SURVEY_INSTANCE_DETAIL, initialValues, "ID_INSTANCE=? AND ID_QUESTION=?", new String[]{String.valueOf(instances), String.valueOf(question)});
+
     }
 
 

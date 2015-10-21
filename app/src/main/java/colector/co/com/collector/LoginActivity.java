@@ -74,9 +74,10 @@ public class LoginActivity extends AppCompatActivity {
                                 AppSession.getInstance().setUser(response.getResponseData().get(0));
                                 // Invoke the survey synchronize
                                 getSurveys();
+                            }else if(output instanceof ErrorResponse){
+                                Toast.makeText(LoginActivity.this, ((ErrorResponse) output).getMessage(), Toast.LENGTH_LONG).show();
                             }else{
-                                // TODO internacionalizar mensaje
-                                Toast.makeText(LoginActivity.this,"Response no valido, contacte al administrador!",Toast.LENGTH_LONG).show();
+                                Toast.makeText(LoginActivity.this, LoginActivity.this.getString(R.string.survey_save_send_error), Toast.LENGTH_LONG).show();
                             }
 
 

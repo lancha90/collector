@@ -15,7 +15,13 @@ import java.util.List;
 
 import colector.co.com.collector.R;
 import colector.co.com.collector.SurveyActivity;
+import colector.co.com.collector.http.AsyncResponse;
+import colector.co.com.collector.http.BackgroundTask;
+import colector.co.com.collector.http.ResourceNetwork;
 import colector.co.com.collector.model.Survey;
+import colector.co.com.collector.model.request.SendSurveyRequest;
+import colector.co.com.collector.model.response.ErrorResponse;
+import colector.co.com.collector.model.response.SendSurveyResponse;
 import colector.co.com.collector.persistence.dao.SurveyDAO;
 import colector.co.com.collector.session.AppSession;
 import colector.co.com.collector.settings.AppSettings;
@@ -62,8 +68,8 @@ public class SurveyAdapter extends ArrayAdapter<Survey> {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Toast.makeText(view.getContext(), context.getString(R.string.survey_delete_ok,view.getTag().toString()), Toast.LENGTH_LONG).show();
-                    new SurveyDAO(view.getContext()).deleteSurveyInstance(Long.parseLong(view.getTag().toString()));
+                    Toast.makeText(getContext(), getContext().getString(R.string.survey_delete_ok, view.getTag().toString()), Toast.LENGTH_LONG).show();
+                    new SurveyDAO(getContext()).deleteSurveyInstance(Long.parseLong(view.getTag().toString()));
                     items.remove(item);
                     SurveyAdapter.this.notifyDataSetChanged();
                 }
@@ -73,8 +79,42 @@ public class SurveyAdapter extends ArrayAdapter<Survey> {
             uploadUpload.setVisibility(View.VISIBLE);
             uploadUpload.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View view) {
-                    Toast.makeText(view.getContext(), "Upload registro ID: " + view.getTag().toString(), Toast.LENGTH_LONG).show();
+                public void onClick(final View view) {
+
+                    SendSurveyRequest toSend = new SendSurveyRequest();
+                    toSend.setForm_id(String.valueOf(item.getForm_id()));
+                    toSend.setColector_id(String.valueOf(AppSession.getInstance().getUser().getColector_id()));
+                    toSend.setResponsesData(item.getInstanceAnswers());
+
+                    AsyncResponse callback = new AsyncResponse() {
+                        @Override
+                        public void callback(Object output) {
+
+                            if(output instanceof SendSurveyResponse){
+                                SendSurveyResponse response = (SendSurveyResponse) output;
+
+                                if(response.getResponseCode().equals(AppSettings.HTTP_OK)){
+                                    new SurveyDAO(getContext()).deleteSurveyInstance(Long.parseLong(view.getTag().toString()));
+                                    items.remove(item);
+                                    SurveyAdapter.this.notifyDataSetChanged();
+                                    Toast.makeText(getContext(), getContext().getString(R.string.survey_save_send_ok), Toast.LENGTH_LONG).show();
+                                }else{
+                                    Toast.makeText(getContext(),response.getResponseDescription(),Toast.LENGTH_LONG).show();
+                                }
+
+                            }else if(output instanceof ErrorResponse){
+                                Toast.makeText(getContext(), ((ErrorResponse) output).getMessage(), Toast.LENGTH_LONG).show();
+                            }else{
+                                Toast.makeText(getContext(), getContext().getString(R.string.survey_save_send_error), Toast.LENGTH_LONG).show();
+                            }
+
+                        }
+                    };
+
+                    BackgroundTask bt = new BackgroundTask(getContext(), toSend, new SendSurveyResponse(), callback);
+                    bt.execute(ResourceNetwork.URL_SEND_SURVEY);
+
+
                 }
             });
 

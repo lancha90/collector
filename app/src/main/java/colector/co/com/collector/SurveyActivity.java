@@ -54,6 +54,7 @@ public class SurveyActivity extends AppCompatActivity {
 
     private LinearLayout container;
     private Survey survey = AppSession.getInstance().getCurrentSurvey();
+    private boolean isModify = false;
     static final int REQUEST_TAKE_PHOTO = 1;
     File photoFile = null;
     String mCurrentPhotoPath;
@@ -124,19 +125,27 @@ public class SurveyActivity extends AppCompatActivity {
                     toInsert.setLatitude("LATITUDE");
                     toInsert.setLongitude("LONGITUDE");
 
-                    Long result = new SurveyDAO(SurveyActivity.this).saveSurveyInstance(toInsert);
-
+                    Long result;
+                    if(isModify){
+                        toInsert.setInstanceId(survey.getInstanceId());
+                        result = new SurveyDAO(SurveyActivity.this).modifySurveyInstance(toInsert);
+                    }else {
+                        result = new SurveyDAO(SurveyActivity.this).saveSurveyInstance(toInsert);
+                    }
+                    // Validate result to print message
                     if (result != -1) {
-                        Toast.makeText(SurveyActivity.this, getString(R.string.survey_save_ok, String.valueOf(result)), Toast.LENGTH_LONG).show();
+                        if(!isModify) {
+                            Toast.makeText(SurveyActivity.this, getString(R.string.survey_save_ok, String.valueOf(result)), Toast.LENGTH_LONG).show();
+                        }else{
+                            Toast.makeText(SurveyActivity.this, getString(R.string.survey_modify_ok, String.valueOf(result)), Toast.LENGTH_LONG).show();
+                        }
                         finish();
                     } else {
                         Toast.makeText(SurveyActivity.this, getString(R.string.survey_save_error), Toast.LENGTH_LONG).show();
                     }
-
                 } else {
                     Toast.makeText(SurveyActivity.this, getString(R.string.survey_save_error_field), Toast.LENGTH_LONG).show();
                 }
-
             }
         }));
 
@@ -320,6 +329,7 @@ public class SurveyActivity extends AppCompatActivity {
         toReturn.setTag(id);
         // set value if is modified
         if(survey.getInstanceId() != null){
+            isModify=true;
             toReturn.setText(survey.getAnswer(id));
         }
 
@@ -361,6 +371,7 @@ public class SurveyActivity extends AppCompatActivity {
         toReturn.setTag(id);
         // set value if is modified
         if(survey.getInstanceId() != null){
+            isModify=true;
             toReturn.setText(survey.getAnswer(id));
         }
         return toReturn;
@@ -375,6 +386,7 @@ public class SurveyActivity extends AppCompatActivity {
         Spinner toReturn = new Spinner(this);
         toReturn.setTag(id);
         setLayoutParams(toReturn);
+        // TODO seleccionar la opción ingresada en la creación
         toReturn.setAdapter(new SurveyAdapterOptionalType(this, new ArrayList<IdValue>(responses)));
         return toReturn;
     }
@@ -402,6 +414,7 @@ public class SurveyActivity extends AppCompatActivity {
         toReturn.setId(id.intValue());
         toReturn.setTag(id);
         setLayoutParams(toReturn);
+        //TODO pintar la imagen que se puso durante la creación
         return toReturn;
     }
 
@@ -448,18 +461,15 @@ public class SurveyActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setMessage(R.string.survey_back)
-                .setPositiveButton("Descartar", new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.survey_back_discard), new DialogInterface.OnClickListener() {
 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
-                        // TODO revisar el cierre de la actividad
-
                         finish();
                     }
 
                 })
-                .setNegativeButton("Cancelar", null)
+                .setNegativeButton(getString(R.string.common_cancel), null)
                 .show();
     }
 

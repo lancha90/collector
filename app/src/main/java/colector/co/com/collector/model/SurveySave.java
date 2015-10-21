@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class SurveySave {
 
+    private Long instanceId;
     private Long id;
     private String latitude;
     private String longitude;
@@ -50,5 +51,13 @@ public class SurveySave {
 
     public void setResponses(List<IdValue> responses) {
         this.responses = responses;
+    }
+
+    public Long getInstanceId() {
+        return instanceId;
+    }
+
+    public void setInstanceId(Long instanceId) {
+        this.instanceId = instanceId;
     }
 }

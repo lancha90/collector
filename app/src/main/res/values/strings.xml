@@ -1,15 +1,23 @@
 <resources>
     <string name="app_name">Collector</string>
     <string name="common_internet_not_available">Requiere una conexión a internet para ejecutar esta acción</string>
+    <string name="common_cancel">Cancelar</string>
 
     <string name="login_error_empty">Debe ingresar un nombre de usuario y contraseña</string>
 
     <string name="generalProgressDialogMessage">Cargando...</string>
 
     <string name="survey_back">Existen cambios no guardados en este formulario. ¿Quiere descartarlos?</string>
+    <string name="survey_back_discard">Descartar</string>
+
+    <string name="survey_delete_ok">Encuesta Eliminada, ID: \'%1$s\'</string>
+
+    <string name="survey_modify_ok">Encuesta Modificada ID: \'%1$s\'</string>
+
     <string name="survey_save_error">Oops! Ocurrio un problema intente mas tarde</string>
     <string name="survey_save_ok">Encuesta Guardada ID: \'%1$s\'</string>
-    <string name="survey_delete_ok">Encuesta Eliminada, ID: \'%1$s\'</string>
+    <string name="survey_save_send_error">Error desconocido, contacte al administrados!</string>
+    <string name="survey_save_send_ok">Encuesta sincronizada!</string>
     <string name="survey_save_error_field">Debe diligenciar todos los campos</string>
     <string name="survey_save">Guardar</string>
 
