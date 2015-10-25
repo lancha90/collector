@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.List;
 
 import colector.co.com.collector.adapters.SurveyAdapterOptionalType;
+import colector.co.com.collector.model.IdOptionValue;
 import colector.co.com.collector.model.IdValue;
 import colector.co.com.collector.model.Question;
 import colector.co.com.collector.model.Section;
@@ -382,12 +383,12 @@ public class SurveyActivity extends AppCompatActivity {
      * Create programatically a spinner
      * @return
      */
-    private Spinner buildSpinner(List<IdValue> responses,Long id){
+    private Spinner buildSpinner(List<IdOptionValue> responses,Long id){
         Spinner toReturn = new Spinner(this);
         toReturn.setTag(id);
         setLayoutParams(toReturn);
         // TODO seleccionar la opción ingresada en la creación
-        toReturn.setAdapter(new SurveyAdapterOptionalType(this, new ArrayList<IdValue>(responses)));
+        toReturn.setAdapter(new SurveyAdapterOptionalType(this, new ArrayList<IdOptionValue>(responses)));
         return toReturn;
     }
 

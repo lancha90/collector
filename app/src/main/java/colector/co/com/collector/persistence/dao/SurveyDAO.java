@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import colector.co.com.collector.model.IdOptionValue;
 import colector.co.com.collector.model.IdValue;
 import colector.co.com.collector.model.Question;
 import colector.co.com.collector.model.ResponseComplex;
@@ -260,7 +261,7 @@ public class SurveyDAO extends DriverSQL {
             if (cursor.getCount() > 0) {
                 if (cursor.moveToFirst()) {
                     do {
-                        IdValue response = new IdValue();
+                        IdOptionValue response = new IdOptionValue();
                         response.setId(cursor.getLong(0));
                         response.setValue(cursor.getString(1));
 
@@ -399,8 +400,8 @@ public class SurveyDAO extends DriverSQL {
      * @param responses list of responses to insert
      * @param db db conection
      */
-    private void synchronizeResponses(List<IdValue> responses, Long question,SQLiteDatabase db){
-        for (IdValue response: responses) {
+    private void synchronizeResponses(List<IdOptionValue> responses, Long question,SQLiteDatabase db){
+        for (IdOptionValue response: responses) {
 
             ContentValues initialValues = new ContentValues();
             initialValues.put("ID", response.getId());

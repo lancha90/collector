@@ -12,17 +12,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import colector.co.com.collector.R;
-import colector.co.com.collector.model.IdValue;
+import colector.co.com.collector.model.IdOptionValue;
 
 /**
  * Created by dherrera on 11/10/15.
  */
-public class SurveyAdapterOptionalType extends ArrayAdapter<IdValue> {
+public class SurveyAdapterOptionalType extends ArrayAdapter<IdOptionValue> {
 
     private Context context;
-    private List<IdValue> items;
+    private List<IdOptionValue> items;
 
-    public SurveyAdapterOptionalType(Context context, ArrayList<IdValue> items) {
+    public SurveyAdapterOptionalType(Context context, ArrayList<IdOptionValue> items) {
         super(context, R.layout.adapter_survey_options,items);
         this.context = context;
         this.items = items;
@@ -37,7 +37,7 @@ public class SurveyAdapterOptionalType extends ArrayAdapter<IdValue> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        IdValue item = this.items.get(position);
+        IdOptionValue item = this.items.get(position);
 
         LayoutInflater inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View row = inflater.inflate(R.layout.adapter_survey_options, parent, false);
