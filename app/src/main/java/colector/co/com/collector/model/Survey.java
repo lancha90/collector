@@ -101,4 +101,14 @@ public class Survey {
         }
         return "";
     }
+
+    public List<String> getListAnswers(Long id){
+        List<String> listAnswers = new ArrayList<String>();
+        for(IdValue item : instanceAnswers){
+            if(item.getId().equals(id)){
+                listAnswers.add(item.getValue());
+            }
+        }
+        return listAnswers;
+    }
 }

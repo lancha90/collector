@@ -6,6 +6,7 @@ package colector.co.com.collector.model;
 public class IdOptionValue {
     private Long response_id;
     private String value;
+    private boolean status;
 
     public IdOptionValue(){
         super();
@@ -31,5 +32,13 @@ public class IdOptionValue {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

@@ -21,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Base64;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
@@ -28,6 +29,8 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,6 +44,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import colector.co.com.collector.adapters.SurveyAdapterMultipleType;
 import colector.co.com.collector.adapters.SurveyAdapterOptionalType;
 import colector.co.com.collector.model.IdOptionValue;
 import colector.co.com.collector.model.IdValue;
@@ -59,6 +63,7 @@ public class SurveyActivity extends AppCompatActivity {
     static final int REQUEST_TAKE_PHOTO = 1;
     File photoFile = null;
     String mCurrentPhotoPath;
+
 
 
 
@@ -96,11 +101,35 @@ public class SurveyActivity extends AppCompatActivity {
                                     isValid = false;
                                 }
 
+                            } else if (toFind.getChildAt(j) instanceof ListView) {
+                                ListView toProcess = (ListView) toFind.getChildAt(j);
+
+                                if (toProcess != null) {
+
+                                    SurveyAdapterMultipleType keyValues = (SurveyAdapterMultipleType) toProcess.getAdapter();
+                                    List<IdOptionValue> lstSelectedValues = keyValues.getTrueStatusItems();
+
+                                    if (lstSelectedValues.size() > 0) {
+
+                                        for (IdOptionValue item : lstSelectedValues) {
+                                            toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(),
+                                                    String.valueOf(item.getId())));
+                                        }
+                                    } else
+                                        isValid = false;
+
+                                } else {
+                                    isValid = false;
+                                }
+
+
                             } else if (toFind.getChildAt(j) instanceof Spinner) {
                                 Spinner toProcess = (Spinner) toFind.getChildAt(j);
 
                                 if (toProcess != null) {
-                                    toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(), String.valueOf(toProcess.getSelectedView().getTag())));
+
+                                    toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(),
+                                            String.valueOf(((IdOptionValue) toProcess.getSelectedItem()).getId())));
                                 } else {
                                     isValid = false;
                                 }
@@ -127,17 +156,17 @@ public class SurveyActivity extends AppCompatActivity {
                     toInsert.setLongitude("LONGITUDE");
 
                     Long result;
-                    if(isModify){
+                    if (isModify) {
                         toInsert.setInstanceId(survey.getInstanceId());
                         result = new SurveyDAO(SurveyActivity.this).modifySurveyInstance(toInsert);
-                    }else {
+                    } else {
                         result = new SurveyDAO(SurveyActivity.this).saveSurveyInstance(toInsert);
                     }
                     // Validate result to print message
                     if (result != -1) {
-                        if(!isModify) {
+                        if (!isModify) {
                             Toast.makeText(SurveyActivity.this, getString(R.string.survey_save_ok, String.valueOf(result)), Toast.LENGTH_LONG).show();
-                        }else{
+                        } else {
                             Toast.makeText(SurveyActivity.this, getString(R.string.survey_modify_ok, String.valueOf(result)), Toast.LENGTH_LONG).show();
                         }
                         finish();
@@ -190,6 +219,11 @@ public class SurveyActivity extends AppCompatActivity {
                 case 3:
                     linear.addView(buildTextView(question.getName()));
                     linear.addView(buildSpinner(question.getResponses(),question.getId()));
+                    break;
+                //Multiple opcion
+                case 5:
+                    linear.addView(buildTextView(question.getName()));
+                    linear.addView(buildMultiple(question.getResponses(), question.getId()));
                     break;
                 // picture
                 case 6:
@@ -355,7 +389,7 @@ public class SurveyActivity extends AppCompatActivity {
         EditText toReturn = buildEditText(id);
         toReturn.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT ));
+                LinearLayout.LayoutParams.MATCH_PARENT));
         toReturn.setGravity(Gravity.TOP);
         toReturn.setSingleLine(false);
         toReturn.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
@@ -378,6 +412,58 @@ public class SurveyActivity extends AppCompatActivity {
         return toReturn;
     }
 
+    /**
+     * Create programatically a Multiple
+     * @return
+     */
+    private ListView buildMultiple(List<IdOptionValue> responses,Long id){
+        ListView toReturn = new ListView(this);
+        toReturn.setTag(id);
+        setLayoutParams(toReturn);
+
+        final ScrollView scroll = (ScrollView) findViewById(R.id.container_employee_information);
+
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                (60*responses.size()));
+        layoutParams.setMargins(30, 30, 30, 30);
+
+        toReturn.setLayoutParams(layoutParams);
+
+        SurveyAdapterMultipleType surveyAdapterMultipleType =
+                new SurveyAdapterMultipleType(this, new ArrayList<IdOptionValue>(responses));
+
+        if(survey.getInstanceId() != null){
+            isModify=true;
+            for (String value : survey.getListAnswers(id)){
+                surveyAdapterMultipleType.setStatusById(Long.parseLong(value), true);
+            }
+        }else{
+            surveyAdapterMultipleType.setFalseItems();
+        }
+
+        toReturn.setAdapter(surveyAdapterMultipleType);
+        View.OnTouchListener listener = new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                scroll.requestDisallowInterceptTouchEvent(true);
+
+                int action = event.getActionMasked();
+
+                switch (action) {
+                    case MotionEvent.ACTION_UP:
+                        scroll.requestDisallowInterceptTouchEvent(false);
+                        break;
+                }
+
+                return false;
+            }
+        };
+
+        toReturn.setOnTouchListener(listener);
+
+        return toReturn;
+    }
 
     /**
      * Create programatically a spinner
@@ -387,8 +473,14 @@ public class SurveyActivity extends AppCompatActivity {
         Spinner toReturn = new Spinner(this);
         toReturn.setTag(id);
         setLayoutParams(toReturn);
-        // TODO seleccionar la opción ingresada en la creación
         toReturn.setAdapter(new SurveyAdapterOptionalType(this, new ArrayList<IdOptionValue>(responses)));
+
+        if(survey.getInstanceId() != null){
+            isModify=true;
+            for (IdValue value : survey.getInstanceAnswers()){
+                toReturn.setSelection(getIndexToSpinner(Long.parseLong(survey.getAnswer(id)),responses));
+            }
+        }
         return toReturn;
     }
 
@@ -502,5 +594,19 @@ public class SurveyActivity extends AppCompatActivity {
             // Do something with the date chosen by the user
             toPrint.setText(day+"/"+month+"/"+year);
         }
+    }
+    /**
+     * Get position of the selected option
+     * @param id of answer
+     * @param answers lsit of answer
+     * @return position of option selected
+     */
+    public int getIndexToSpinner(Long id, List<IdOptionValue> answers) {
+        for (int i = 0; i < answers.size(); i++) {
+            if (answers.get(i).getId().equals(id)) {
+                return i;
+            }
+        }
+        return 0;
     }
 }
