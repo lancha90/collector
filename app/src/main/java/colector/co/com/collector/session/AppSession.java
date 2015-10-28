@@ -16,6 +16,8 @@ public class AppSession {
     private List<Survey> surveyAvailable;
     private List<Survey> surveyDone;
     private Survey currentSurvey;
+    private String currentPhotoPath;
+    private Long currentPhotoID;
 
     public AppSession() {
     }
@@ -72,6 +74,22 @@ public class AppSession {
 
     public void setCurrentSurvey(Survey currentSurvey) {
         this.currentSurvey = currentSurvey;
+    }
+
+    public String getCurrentPhotoPath() {
+        return currentPhotoPath;
+    }
+
+    public void setCurrentPhotoPath(String currentPhotoPath) {
+        this.currentPhotoPath = currentPhotoPath;
+    }
+
+    public Long getCurrentPhotoID() {
+        return currentPhotoID;
+    }
+
+    public void setCurrentPhotoID(Long currentPhotoID) {
+        this.currentPhotoID = currentPhotoID;
     }
 }
 
