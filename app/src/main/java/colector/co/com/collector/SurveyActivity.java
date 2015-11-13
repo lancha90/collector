@@ -215,7 +215,7 @@ public class SurveyActivity extends AppCompatActivity {
 
         for(Question question : section.getInputs()){
 
-           buildQuestion(question.getName(), question.getId(), question.getType(), question.getResponses(),question.getOptions(),question.getAtributos() linear);
+           buildQuestion(question.getName(), question.getId(), question.getType(), question.getResponses(),question.getOptions(),question.getAtributos(), linear);
         }
 
         container.addView(linear);
