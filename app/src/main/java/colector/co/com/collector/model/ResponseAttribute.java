@@ -21,6 +21,11 @@ public class ResponseAttribute {
         this.label = label;
     }
 
+    public ResponseAttribute() {
+        super();
+    }
+
+
     public Long getInput_id() {
         return input_id;
     }

@@ -14,7 +14,10 @@ import java.util.List;
 import colector.co.com.collector.model.IdOptionValue;
 import colector.co.com.collector.model.IdValue;
 import colector.co.com.collector.model.Question;
+import colector.co.com.collector.model.RecordId;
+import colector.co.com.collector.model.ResponseAttribute;
 import colector.co.com.collector.model.ResponseComplex;
+import colector.co.com.collector.model.ResponseItem;
 import colector.co.com.collector.model.Section;
 import colector.co.com.collector.model.Survey;
 import colector.co.com.collector.model.SurveySave;
@@ -30,6 +33,7 @@ public class SurveyDAO extends DriverSQL {
 	private final static String TBL_NAME_QUESTION = "TBL_QUESTION";
 	private final static String TBL_NAME_RESPONSE_COMPLEX = "TBL_RESPONSE_COMPLEX";
 	private final static String TBL_NAME_RESPONSE_COMPLEX_OPTION = "TBL_RESPONSE_COMPLEX_OPTION";
+    private final static String TBL_NAME_RESPONSE_ATTRIBUTES = "TBL_RESPONSE_ATTRIBUTES";
 	private final static String TBL_NAME_RESPONSE = "TBL_RESPONSE";
 
 	private SQLiteDatabase db;
@@ -226,9 +230,8 @@ public class SurveyDAO extends DriverSQL {
                         question.setDescription(cursor.getString(2));
                         question.setType(cursor.getInt(3));
                         getSurveyQuestionResponse(db, question);
-
-                        // TODO pediente de resolver como van a ser este tipo de respueta
-                        //getSurveyQuestionComplex(db, question);
+                        getSurveyQuestionComplex(db, question);
+                        getSurveyQuestionAttributes(db, question);
 
                         section.getInputs().add(question);
                     } while (cursor.moveToNext());
@@ -284,11 +287,10 @@ public class SurveyDAO extends DriverSQL {
      */
     private void getSurveyQuestionComplex(SQLiteDatabase db, Question question){
 
-/*
-        String[] fields = new String[] { "ID","VALUE"};
+        String[] fields = new String[] { "ID"};
         String[] where = new String[] { String.valueOf(question.getId()) };
 
-        Cursor cursor = db.query(TBL_NAME_RESPONSE, fields, "QUESTION=?", where, null, null, null);
+        Cursor cursor = db.query(TBL_NAME_RESPONSE_COMPLEX, fields, "QUESTION=?", where, null, null, null);
 
 
         try {
@@ -296,22 +298,92 @@ public class SurveyDAO extends DriverSQL {
                 if (cursor.moveToFirst()) {
                     do {
                         ResponseComplex response = new ResponseComplex();
-                        response.setId(cursor.getLong(0));
-                        response.setValue(cursor.getString(1));
+                        RecordId record_id = new RecordId(cursor.getString(0));
+                        response.setRecord_id(record_id);
 
-                        question.getFilled_forms().add(response);
+                        getSurveyQuestionComplexOptions(db, response);
+
+                        question.getOptions().add(response);
                     } while (cursor.moveToNext());
                 }
             }
 
         }catch (SQLException se) {
-            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME_RESPONSE + ".";
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME_RESPONSE_COMPLEX + ".";
             Log.e(AppSettings.TAG, msg, se);
 
-        } finally {
-            close();
         }
-        */
+    }
+
+
+
+    /**
+     * Get and insert response from Question
+     * @param db
+     * @param complex
+     */
+    private void getSurveyQuestionComplexOptions(SQLiteDatabase db, ResponseComplex complex){
+
+        String[] fields = new String[] { "ID, LABEL, VALUE, TYPE"};
+        String[] where = new String[] { String.valueOf(complex.getRecord_id().getUuid()) };
+
+        Cursor cursor = db.query(TBL_NAME_RESPONSE_COMPLEX_OPTION, fields, "COMPLEX=?", where, null, null, null);
+
+
+        try {
+            if (cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        ResponseItem response = new ResponseItem();
+                        response.setInput_id(cursor.getLong(0));
+                        response.setLabel(cursor.getString(1));
+                        response.setValue(cursor.getString(2));
+                        response.setTipo(cursor.getLong(3));
+
+                        complex.getResponses().add(response);
+                    } while (cursor.moveToNext());
+                }
+            }
+
+        }catch (SQLException se) {
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME_RESPONSE_COMPLEX_OPTION + ".";
+            Log.e(AppSettings.TAG, msg, se);
+
+        }
+    }
+
+    /**
+     * Get and insert response from Question
+     * @param db
+     * @param question
+     */
+    private void getSurveyQuestionAttributes(SQLiteDatabase db, Question question){
+
+        String[] fields = new String[] { "ID, LABEL, TYPE"};
+        String[] where = new String[] { String.valueOf(question.getId()) };
+
+        Cursor cursor = db.query(TBL_NAME_RESPONSE_ATTRIBUTES, fields, "QUESTION=?", where, null, null, null);
+
+
+        try {
+            if (cursor.getCount() > 0) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        ResponseAttribute response = new ResponseAttribute();
+                        response.setInput_id(cursor.getLong(0));
+                        response.setLabel(cursor.getString(1));
+                        response.setType(cursor.getInt(2));
+
+                        question.getAtributos().add(response);
+                    } while (cursor.moveToNext());
+                }
+            }
+
+        }catch (SQLException se) {
+            String msg = "Ha ocurrido un error recuperando los datos de la tabla " + TBL_NAME_RESPONSE_ATTRIBUTES + ".";
+            Log.e(AppSettings.TAG, msg, se);
+
+        }
     }
 
 
@@ -393,6 +465,7 @@ public class SurveyDAO extends DriverSQL {
 
             synchronizeResponses(question.getResponses(), question.getId(), db);
             synchronizeResponsesComplex(question.getOptions(), question.getId(), db);
+            synchronizeResponsesAttributes(question.getAtributos(), question.getId(), db);
         }
     }
 
@@ -423,22 +496,21 @@ public class SurveyDAO extends DriverSQL {
      */
     private void synchronizeResponsesComplex(List<ResponseComplex> responses, Long question,SQLiteDatabase db){
 
-       /* if(responses != null) {
+        if(responses != null) {
 
             for (ResponseComplex response : responses) {
 
                 ContentValues initialValues = new ContentValues();
-                initialValues.put("ID", response.getId());
-                initialValues.put("VALUE", response.getValue());
+                initialValues.put("ID", response.getRecord_id().getUuid());
                 initialValues.put("QUESTION", question);
 
                 // Inserta o actualiza un registro
                 if ((int) db.insertWithOnConflict(TBL_NAME_RESPONSE_COMPLEX, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
-                    db.update(TBL_NAME_RESPONSE_COMPLEX, initialValues, "ID=?", new String[]{String.valueOf(response.getId())});
+                    db.update(TBL_NAME_RESPONSE_COMPLEX, initialValues, "ID=?", new String[]{String.valueOf(response.getRecord_id().getUuid())});
                 }
-                synchronizeResponsesComplexOptions(response.getData(), response.getId(), db);
+                synchronizeResponsesComplexOptions(response.getResponses(), response.getRecord_id().getUuid(), db);
             }
-        }*/
+        }
     }
 
     /**
@@ -446,17 +518,19 @@ public class SurveyDAO extends DriverSQL {
      * @param responses list of responses to insert
      * @param db db conection
      */
-    private void synchronizeResponsesComplexOptions(List<IdValue> responses, Long complex,SQLiteDatabase db){
-        for (IdValue response: responses) {
+    private void synchronizeResponsesComplexOptions(List<ResponseItem> responses, String complex,SQLiteDatabase db){
+        for (ResponseItem response: responses) {
 
             ContentValues initialValues = new ContentValues();
-            initialValues.put("ID", response.getId());
+            initialValues.put("ID", response.getInput_id());
+            initialValues.put("LABEL", response.getLabel());
+            initialValues.put("TYPE", response.getTipo());
             initialValues.put("VALUE", response.getValue());
             initialValues.put("COMPLEX", complex);
 
             // Inserta o actualiza un registro
             if ((int) db.insertWithOnConflict(TBL_NAME_RESPONSE_COMPLEX_OPTION, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
-                db.update(TBL_NAME_RESPONSE_COMPLEX_OPTION, initialValues, "ID=?", new String[]{String.valueOf(response.getId())});
+                db.update(TBL_NAME_RESPONSE_COMPLEX_OPTION, initialValues, "ID=?", new String[]{String.valueOf(response.getInput_id())});
             }
         }
     }
@@ -576,5 +650,33 @@ public class SurveyDAO extends DriverSQL {
         db.delete(TBL_NAME_SURVEY_INSTANCE_DETAIL, "ID_INSTANCE=?", where);
     }
 
+
+
+    /**
+     * Insert or update responses from login process
+     * @param responses list of responses to insert
+     * @param db db conection
+     */
+    private void synchronizeResponsesAttributes(List<ResponseAttribute> responses, Long question,SQLiteDatabase db){
+
+        if(responses != null) {
+
+            for (ResponseAttribute response : responses) {
+
+                ContentValues initialValues = new ContentValues();
+
+                initialValues.put("ID", response.getInput_id());
+                initialValues.put("LABEL", response.getLabel());
+                initialValues.put("TYPE", response.getType());
+                initialValues.put("QUESTION", question);
+
+                // Inserta o actualiza un registro
+                if ((int) db.insertWithOnConflict(TBL_NAME_RESPONSE_ATTRIBUTES, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
+                    db.update(TBL_NAME_RESPONSE_ATTRIBUTES, initialValues, "ID=?", new String[]{String.valueOf(response.getInput_id())});
+                }
+
+            }
+        }
+    }
 
 }

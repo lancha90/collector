@@ -18,6 +18,10 @@ public class ResponseComplex {
         this.responses = responses;
     }
 
+    public ResponseComplex() {
+        super();
+    }
+
     public RecordId getRecord_id() {
         return record_id;
     }
