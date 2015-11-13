@@ -20,6 +20,7 @@
     <string name="survey_save_send_ok">Encuesta sincronizada!</string>
     <string name="survey_save_error_field">Debe diligenciar todos los campos</string>
     <string name="survey_save">Guardar</string>
+    <string name="survey_search">Buscar</string>
 
 
 

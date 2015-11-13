@@ -21,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Base64;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -141,9 +142,9 @@ public class SurveyActivity extends AppCompatActivity {
                                 Long idQuestion = (Long) toProcessLinear.getTag();
 
                                 // Se recorren todos los elementos de linear layout buscando los imageview de las imagenes
-                                for(int k=0 ; k<toProcessLinear.getChildCount();k++ ){
+                                for (int k = 0; k < toProcessLinear.getChildCount(); k++) {
 
-                                    if(toProcessLinear.getChildAt(k) instanceof ImageView) {
+                                    if (toProcessLinear.getChildAt(k) instanceof ImageView) {
                                         ImageView toProcess = (ImageView) toProcessLinear.getChildAt(k);
                                         if (toProcess != null && toProcess.getDrawable() != null) {
                                             String base64 = getEncoded64ImageStringFromBitmap(((BitmapDrawable) toProcess.getDrawable()).getBitmap());
@@ -215,7 +216,7 @@ public class SurveyActivity extends AppCompatActivity {
 
         for(Question question : section.getInputs()){
 
-           buildQuestion(question.getName(), question.getId(), question.getType(), question.getResponses(),question.getOptions(),question.getAtributos(), linear);
+           buildQuestion(question.getName(), question.getId(), question.getType(), question.getResponses(), question.getOptions(), question.getAtributos(), linear);
         }
 
         container.addView(linear);
@@ -275,6 +276,9 @@ public class SurveyActivity extends AppCompatActivity {
             // dynamic form
             case 10:
                 linear.addView(buildSeparator());
+                linear.addView(buildTextView(label));
+
+                linear.addView(buildButton(getString(R.string.survey_search), showPopupSearch(options)));
 
                 for( ResponseAttribute item : atributos ){
 
@@ -282,8 +286,6 @@ public class SurveyActivity extends AppCompatActivity {
 
                 }
 
-                linear.addView(buildTextView(label));
-                linear.addView(buildEditTextNumeric(id));
                 linear.addView(buildSeparator());
                 break;
         }
@@ -525,6 +527,14 @@ public class SurveyActivity extends AppCompatActivity {
         toReturn.setLayoutParams(layoutParams);
         toReturn.setBackgroundColor(Color.rgb(51, 51, 51));
         return toReturn;
+    }
+
+
+    private View.OnClickListener showPopupSearch(List<ResponseComplex> options){
+
+        LayoutInflater layoutInflater = (LayoutInflater)getBaseContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = layoutInflater.inflate(R.layout.popup_search, null);
+
     }
 
     /**
