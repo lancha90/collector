@@ -1,5 +1,8 @@
 package colector.co.com.collector.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Attributes into the dynamic form
  * Created by dherrera on 13/11/15.
@@ -9,6 +12,7 @@ public class ResponseAttribute {
     private Long input_id;
     private Long type;
     private String label;
+    private List<IdOptionValue> responses;
 
     public ResponseAttribute(Long input_id, Long type, String label) {
         super();
@@ -39,5 +43,16 @@ public class ResponseAttribute {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public List<IdOptionValue> getResponses() {
+        if(responses == null){
+            responses=new ArrayList<IdOptionValue>();
+        }
+        return responses;
+    }
+
+    public void setResponses(List<IdOptionValue> responses) {
+        this.responses = responses;
     }
 }
