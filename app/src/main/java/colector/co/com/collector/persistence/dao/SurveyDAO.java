@@ -284,7 +284,7 @@ public class SurveyDAO extends DriverSQL {
      */
     private void getSurveyQuestionComplex(SQLiteDatabase db, Question question){
 
-
+/*
         String[] fields = new String[] { "ID","VALUE"};
         String[] where = new String[] { String.valueOf(question.getId()) };
 
@@ -311,6 +311,7 @@ public class SurveyDAO extends DriverSQL {
         } finally {
             close();
         }
+        */
     }
 
 
@@ -391,7 +392,7 @@ public class SurveyDAO extends DriverSQL {
             }
 
             synchronizeResponses(question.getResponses(), question.getId(), db);
-            synchronizeResponsesComplex(question.getFilled_forms(), question.getId(), db);
+            synchronizeResponsesComplex(question.getOptions(), question.getId(), db);
         }
     }
 
@@ -422,7 +423,7 @@ public class SurveyDAO extends DriverSQL {
      */
     private void synchronizeResponsesComplex(List<ResponseComplex> responses, Long question,SQLiteDatabase db){
 
-        if(responses != null) {
+       /* if(responses != null) {
 
             for (ResponseComplex response : responses) {
 
@@ -437,7 +438,7 @@ public class SurveyDAO extends DriverSQL {
                 }
                 synchronizeResponsesComplexOptions(response.getData(), response.getId(), db);
             }
-        }
+        }*/
     }
 
     /**

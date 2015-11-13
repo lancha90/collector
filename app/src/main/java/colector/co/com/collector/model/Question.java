@@ -25,7 +25,7 @@ public class Question {
     private int type;
 
     private List<IdOptionValue> responses;
-    private List<ResponseComplex> filled_forms;
+    private List<ResponseComplex> options;
     private String name;
     private String description;
 
@@ -33,11 +33,11 @@ public class Question {
         super();
     }
 
-    public Question(Long id, int type, List<IdOptionValue> responses, List<ResponseComplex> filled_forms, String name, String description) {
+    public Question(Long id, int type, List<IdOptionValue> responses, List<ResponseComplex> options, String name, String description) {
         this.input_id = id;
         this.type = type;
         this.responses = responses;
-        this.filled_forms = filled_forms;
+        this.options = options;
         this.name = name;
         this.description = description;
     }
@@ -69,12 +69,16 @@ public class Question {
         this.responses = responses;
     }
 
-    public List<ResponseComplex> getFilled_forms() {
-        return filled_forms;
+    public List<ResponseComplex> getOptions() {
+
+        if( options == null){
+            options = new ArrayList<ResponseComplex>();
+        }
+            return options;
     }
 
-    public void setFilled_forms(List<ResponseComplex> filled_forms) {
-        this.filled_forms = filled_forms;
+    public void setOptions(List<ResponseComplex> options) {
+        this.options = options;
     }
 
     public String getName() {

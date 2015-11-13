@@ -8,44 +8,43 @@ import java.util.List;
  */
 public class ResponseComplex {
 
-    private Long id;
-    private String value;
-    private List<IdValue> data;
+    private RecordId record_id;
+    private List<ResponseItem> responses;
+    private List<ResponseAttribute> atributos;
 
-    public ResponseComplex(){
-        super();
+    public ResponseComplex(RecordId record_id, List<ResponseItem> responses, List<ResponseAttribute> atributos) {
+        this.record_id = record_id;
+        this.responses = responses;
+        this.atributos = atributos;
     }
 
-    public ResponseComplex(Long id, String value, List<IdValue> data) {
-        this.id = id;
-        this.value = value;
-        this.data = data;
+    public RecordId getRecord_id() {
+        return record_id;
     }
 
-    public Long getId() {
-        return id;
+    public void setRecord_id(RecordId record_id) {
+        this.record_id = record_id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public List<IdValue> getData() {
-        if(data == null){
-            data = new ArrayList<IdValue>();
+    public List<ResponseItem> getResponses() {
+        if(responses == null){
+            responses = new ArrayList<ResponseItem>();
         }
-        return data;
+        return responses;
     }
 
-    public void setData(List<IdValue> data) {
-        this.data = data;
+    public void setResponses(List<ResponseItem> responses) {
+        this.responses = responses;
+    }
+
+    public List<ResponseAttribute> getAtributos() {
+        if(atributos == null){
+            atributos = new ArrayList<ResponseAttribute>();
+        }
+        return atributos;
+    }
+
+    public void setAtributos(List<ResponseAttribute> atributos) {
+        this.atributos = atributos;
     }
 }

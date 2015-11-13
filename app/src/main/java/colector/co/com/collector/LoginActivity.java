@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
@@ -28,15 +29,17 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText etUsername;
     private EditText etPassword;
+    private String UUID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        UUID = Utilities.getUUID(this);
 
         etUsername = (EditText) findViewById(R.id.editTextEmail);
         etPassword = (EditText) findViewById(R.id.editTextPassword);
-
+        ((TextView) findViewById(R.id.login_uuid)).setText(UUID);
     }
 
 
@@ -60,8 +63,7 @@ public class LoginActivity extends AppCompatActivity {
         }else {
 
             LoginRequest toSend = new LoginRequest(etUsername.getText().toString(), etPassword.getText().toString());
-            // TODO obtener el id del dispositivo
-            toSend.setTabletId("001");
+            toSend.setTabletId(UUID);
             AsyncResponse callback = new AsyncResponse() {
                 @Override
                 public void callback(Object output) {

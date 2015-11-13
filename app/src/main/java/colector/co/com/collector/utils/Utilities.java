@@ -2,6 +2,7 @@ package colector.co.com.collector.utils;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.telephony.TelephonyManager;
 
 import java.io.IOException;
 
@@ -49,6 +50,16 @@ public class Utilities {
         }
 
         return false;
+    }
+
+
+    /**
+     * Get UUID from system
+     * @return
+     */
+    public static String getUUID(Context context){
+        TelephonyManager tManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+        return tManager.getDeviceId();
     }
 
     /**
