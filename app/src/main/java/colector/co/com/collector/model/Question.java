@@ -26,6 +26,7 @@ public class Question {
 
     private List<IdOptionValue> responses;
     private List<ResponseComplex> options;
+    private List<ResponseAttribute> atributos;
     private String name;
     private String description;
 
@@ -95,5 +96,16 @@ public class Question {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<ResponseAttribute> getAtributos() {
+        if(atributos == null){
+            atributos = new ArrayList<ResponseAttribute>();
+        }
+        return atributos;
+    }
+
+    public void setAtributos(List<ResponseAttribute> atributos) {
+        this.atributos = atributos;
     }
 }

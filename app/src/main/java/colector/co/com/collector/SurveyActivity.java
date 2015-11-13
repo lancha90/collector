@@ -49,6 +49,8 @@ import colector.co.com.collector.adapters.SurveyAdapterOptionalType;
 import colector.co.com.collector.model.IdOptionValue;
 import colector.co.com.collector.model.IdValue;
 import colector.co.com.collector.model.Question;
+import colector.co.com.collector.model.ResponseAttribute;
+import colector.co.com.collector.model.ResponseComplex;
 import colector.co.com.collector.model.Section;
 import colector.co.com.collector.model.Survey;
 import colector.co.com.collector.model.SurveySave;
@@ -213,60 +215,78 @@ public class SurveyActivity extends AppCompatActivity {
 
         for(Question question : section.getInputs()){
 
-            switch (question.getType()){
-                // input text
-                case 1:
-                    linear.addView(buildTextView(question.getName()));
-                    linear.addView(buildEditText(question.getId()));
-                    break;
-                // input text multiline
-                case 2:
-                    linear.addView(buildTextView(question.getName()));
-                    linear.addView(buildEditTextMultiline(question.getId()));
-                    break;
-                // opcion o combobox
-                case 3:
-                    linear.addView(buildTextView(question.getName()));
-                    linear.addView(buildSpinner(question.getResponses(),question.getId()));
-                    break;
-                //Multiple opcion
-                case 5:
-                    linear.addView(buildTextView(question.getName()));
-                    linear.addView(buildMultiple(question.getResponses(), question.getId()));
-                    break;
-                // picture
-                case 6:
-					linear.addView(buildImageLinear(question.getId()));
-                    final Long id = question.getId();
-                    linear.addView(buildButton(question.getName(), new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            AppSession.getInstance().setCurrentPhotoID(id);
-                            dispatchTakePictureIntent(id);
-                        }
-                    }));
-                    break;
-                // date
-                case 7:
-                    final TextView tv = buildTextView(question.getName());
-                    linear.addView(tv);
-                    linear.addView(buildEditText(new View.OnClickListener() {
-                        public void onClick(View v) {
-                            DialogFragment newFragment = new TimePickerFragment((EditText) v);
-                            newFragment.show(SurveyActivity.this.getFragmentManager(), "timePicker");
-                        }
-                    },question.getId()));
-                    break;
-                // numeric input text
-                case 8:
-                    linear.addView(buildTextView(question.getName()));
-                    linear.addView(buildEditTextNumeric(question.getId()));
-                    break;
-            }
+           buildQuestion(question.getName(), question.getId(), question.getType(), question.getResponses(),question.getOptions(),question.getAtributos() linear);
         }
 
         container.addView(linear);
 
+    }
+
+    private void buildQuestion(String label,Long id,int type,List<IdOptionValue> response, List<ResponseComplex> options, List<ResponseAttribute> atributos, LinearLayout linear){
+        switch (type){
+            // input text
+            case 1:
+                linear.addView(buildTextView(label));
+                linear.addView(buildEditText(id));
+                break;
+            // input text multiline
+            case 2:
+                linear.addView(buildTextView(label));
+                linear.addView(buildEditTextMultiline(id));
+                break;
+            // opcion o combobox
+            case 3:
+                linear.addView(buildTextView(label));
+                linear.addView(buildSpinner(response, id));
+                break;
+            //Multiple opcion
+            case 5:
+                linear.addView(buildTextView(label));
+                linear.addView(buildMultiple(response, id));
+                break;
+            // picture
+            case 6:
+                linear.addView(buildImageLinear(id));
+                final Long _id = id;
+                linear.addView(buildButton(label, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AppSession.getInstance().setCurrentPhotoID(_id);
+                        dispatchTakePictureIntent(_id);
+                    }
+                }));
+                break;
+            // date
+            case 7:
+                final TextView tv = buildTextView(label);
+                linear.addView(tv);
+                linear.addView(buildEditText(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        DialogFragment newFragment = new TimePickerFragment((EditText) v);
+                        newFragment.show(SurveyActivity.this.getFragmentManager(), "timePicker");
+                    }
+                }, id));
+                break;
+            // numeric input text
+            case 8:
+                linear.addView(buildTextView(label));
+                linear.addView(buildEditTextNumeric(id));
+                break;
+            // dynamic form
+            case 10:
+                linear.addView(buildSeparator());
+
+                for( ResponseAttribute item : atributos ){
+
+                    buildQuestion(item.getLabel(),item.getInput_id(),item.getType(),item.getResponses(),null,null,linear);
+
+                }
+
+                linear.addView(buildTextView(label));
+                linear.addView(buildEditTextNumeric(id));
+                linear.addView(buildSeparator());
+                break;
+        }
     }
 
 

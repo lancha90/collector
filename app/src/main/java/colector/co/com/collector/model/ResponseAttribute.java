@@ -10,11 +10,11 @@ import java.util.List;
 public class ResponseAttribute {
 
     private Long input_id;
-    private Long type;
+    private int type;
     private String label;
     private List<IdOptionValue> responses;
 
-    public ResponseAttribute(Long input_id, Long type, String label) {
+    public ResponseAttribute(Long input_id, int type, String label) {
         super();
         this.input_id = input_id;
         this.type = type;
@@ -29,11 +29,11 @@ public class ResponseAttribute {
         this.input_id = input_id;
     }
 
-    public Long getType() {
+    public int getType() {
         return type;
     }
 
-    public void setType(Long type) {
+    public void setType(int type) {
         this.type = type;
     }
 
