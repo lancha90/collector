@@ -61,7 +61,6 @@ import colector.co.com.collector.model.Survey;
 import colector.co.com.collector.model.SurveySave;
 import colector.co.com.collector.persistence.dao.SurveyDAO;
 import colector.co.com.collector.session.AppSession;
-import colector.co.com.collector.settings.AppSettings;
 
 public class SurveyActivity extends AppCompatActivity {
 
@@ -96,7 +95,6 @@ public class SurveyActivity extends AppCompatActivity {
                         LinearLayout toFind = (LinearLayout) container.getChildAt(i);
 
                         for (int j = 0; j < toFind.getChildCount(); j++) {
-
 
                             if(toFind.getChildAt(j) instanceof LinearLayout && toFind.getChildAt(j).getTag() != null && toFind.getChildAt(j).getTag() instanceof IdValue) {
 
@@ -310,17 +308,33 @@ public class SurveyActivity extends AppCompatActivity {
             case 10:
 
                 LinearLayout toInsertQuestion = new LinearLayout(this);
+                ResponseComplex toModify = null;
                 toInsertQuestion.setOrientation(LinearLayout.VERTICAL);
                 toInsertQuestion.addView(buildSeparator());
-                toInsertQuestion.setTag(new ResponseComplex());
                 setLayoutParams(toInsertQuestion);
 
                 linear.addView(buildTextView(label));
+                linear.addView(buildButton(getString(R.string.survey_search), showPopupSearch(options, toInsertQuestion, id)));
 
-                linear.addView(buildButton(getString(R.string.survey_search), showPopupSearch(options, toInsertQuestion,id)));
+                if(survey.getInstanceId() != null){
+                    isModify=true;
 
-                for( ResponseAttribute item : atributos ){
-                    buildQuestion(item.getLabel(),item.getInput_id(),item.getType(),item.getResponses(),null,null,toInsertQuestion);
+                    for(ResponseComplex item : options){
+                        if(item.getRecord_id().getUuid().equals(survey.getAnswer(id))){
+                            toModify = item;
+                            break;
+                        }
+                    }
+                }else{
+                    toInsertQuestion.setTag(new ResponseComplex());
+                }
+
+                if(toModify == null){
+                    for( ResponseAttribute item : atributos ){
+                        buildQuestion(item.getLabel(),item.getInput_id(),item.getType(),item.getResponses(),null,null,toInsertQuestion);
+                    }
+                }else{
+                    fillDynamicForm(toModify,toInsertQuestion,id);
                 }
 
                 toInsertQuestion.addView(buildSeparator());
@@ -615,14 +629,17 @@ public class SurveyActivity extends AppCompatActivity {
         LinearLayout toInsertQuestion = new LinearLayout(this);
         toInsertQuestion.setOrientation(LinearLayout.VERTICAL);
         setLayoutParams(toInsertQuestion);
-        linear.setTag(new IdValue(idQuestion, option.getRecord_id().getUuid()));
 
-        for (ResponseItem data : option.getResponses()){
-            TextView toInsert = new TextView(SurveyActivity.this);
-            toInsert.setText(data.getLabel() + ": " + data.getValue());
-            toInsert.setTextColor(ContextCompat.getColor(SurveyActivity.this, R.color.text_color));
-            linear.addView(toInsert);
-        }
+
+            linear.setTag(new IdValue(idQuestion, option.getRecord_id().getUuid()));
+            for (ResponseItem data : option.getResponses()){
+                TextView toInsert = new TextView(SurveyActivity.this);
+                toInsert.setText(data.getLabel() + ": " + data.getValue());
+                toInsert.setTextColor(ContextCompat.getColor(SurveyActivity.this, R.color.text_color));
+                linear.addView(toInsert);
+            }
+
+
 
     }
 
