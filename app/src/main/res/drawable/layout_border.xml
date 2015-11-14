@@ -30,7 +30,7 @@
             android:shape="rectangle" >
             <solid
                 android:background="@color/background_color"
-                android:color="#F0F0F0" />
+                android:color="#FFF" />
         </shape>
     </item>
 
