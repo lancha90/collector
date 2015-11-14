@@ -20,7 +20,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Base64;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -98,76 +97,29 @@ public class SurveyActivity extends AppCompatActivity {
 
                         for (int j = 0; j < toFind.getChildCount(); j++) {
 
-                            if (toFind.getChildAt(j) instanceof EditText) {
-                                EditText toProcess = (EditText) toFind.getChildAt(j);
 
-                                if (toProcess != null && !toProcess.getText().toString().isEmpty()) {
-
-                                    toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(), toProcess.getText().toString()));
-
-                                } else {
-                                    isValid = false;
-                                }
-
-                            } else if (toFind.getChildAt(j) instanceof ListView) {
-                                ListView toProcess = (ListView) toFind.getChildAt(j);
-
-                                if (toProcess != null) {
-
-                                    SurveyAdapterMultipleType keyValues = (SurveyAdapterMultipleType) toProcess.getAdapter();
-                                    List<IdOptionValue> lstSelectedValues = keyValues.getTrueStatusItems();
-
-                                    if (lstSelectedValues.size() > 0) {
-
-                                        for (IdOptionValue item : lstSelectedValues) {
-                                            toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(),
-                                                    String.valueOf(item.getId())));
-                                        }
-                                    } else
-                                        isValid = false;
-
-                                } else {
-                                    isValid = false;
-                                }
-
-
-                            } else if (toFind.getChildAt(j) instanceof Spinner) {
-                                Spinner toProcess = (Spinner) toFind.getChildAt(j);
-
-                                if (toProcess != null) {
-
-                                    toInsert.getResponses().add(new IdValue((Long) toProcess.getTag(),
-                                            String.valueOf(((IdOptionValue) toProcess.getSelectedItem()).getId())));
-                                } else {
-                                    isValid = false;
-                                }
-
-                            }else if(toFind.getChildAt(j) instanceof LinearLayout && toFind.getChildAt(j).getTag() != null && toFind.getChildAt(j).getTag() instanceof IdValue) {
+                            if(toFind.getChildAt(j) instanceof LinearLayout && toFind.getChildAt(j).getTag() != null && toFind.getChildAt(j).getTag() instanceof IdValue) {
 
                                 IdValue toInsertValue = (IdValue) toFind.getChildAt(j).getTag();
-                                Toast.makeText(SurveyActivity.this, "uuid: "+toInsertValue.getValue()+"   question: "+toInsertValue.getId(), Toast.LENGTH_LONG).show();
                                 toInsert.getResponses().add(toInsertValue);
 
-                            }else if(toFind.getChildAt(j) instanceof LinearLayout && toFind.getChildAt(j).getTag() != null) {
+                            }else if(toFind.getChildAt(j) instanceof LinearLayout && toFind.getChildAt(j).getTag() != null && toFind.getChildAt(j).getTag() instanceof ResponseComplex) {
 
-                                LinearLayout toProcessLinear = (LinearLayout) toFind.getChildAt(j);
-                                Long idQuestion = (Long) toProcessLinear.getTag();
+                                LinearLayout toFindDynamic = (LinearLayout) toFind.getChildAt(j);
+                                for(int k=0;k<toFindDynamic.getChildCount();k++ ){
 
-                                // Se recorren todos los elementos de linear layout buscando los imageview de las imagenes
-                                for (int k = 0; k < toProcessLinear.getChildCount(); k++) {
-
-                                    if (toProcessLinear.getChildAt(k) instanceof ImageView) {
-                                        ImageView toProcess = (ImageView) toProcessLinear.getChildAt(k);
-                                        if (toProcess != null && toProcess.getDrawable() != null) {
-                                            String base64 = getEncoded64ImageStringFromBitmap(((BitmapDrawable) toProcess.getDrawable()).getBitmap());
-                                            toInsert.getResponses().add(new IdValue(idQuestion, base64));
-                                        } else {
-                                            isValid = false;
-                                        }
+                                    boolean isResponseOK = buildObjectToSave(toFindDynamic.getChildAt(k),toInsert.getResponses());
+                                    if (!isResponseOK) {
+                                        isValid = false;
                                     }
-
                                 }
 
+                            }else {
+
+                                boolean isResponseOK = buildObjectToSave(toFind.getChildAt(j),toInsert.getResponses());
+                                if (!isResponseOK) {
+                                    isValid = false;
+                                }
                             }
                         }
                     }
@@ -204,6 +156,76 @@ public class SurveyActivity extends AppCompatActivity {
         }));
 
 
+    }
+
+    /**
+     * Build an object to save survey
+     */
+    private boolean buildObjectToSave(View view, List<IdValue> arrayResponse){
+
+        if (view instanceof EditText) {
+            EditText toProcess = (EditText) view;
+
+            if (toProcess != null && !toProcess.getText().toString().isEmpty()) {
+
+                arrayResponse.add(new IdValue((Long) toProcess.getTag(), toProcess.getText().toString()));
+
+            } else {
+                return false;
+            }
+
+        }else if (view instanceof ListView) {
+            ListView toProcess = (ListView) view;
+
+            if (toProcess != null) {
+
+                SurveyAdapterMultipleType keyValues = (SurveyAdapterMultipleType) toProcess.getAdapter();
+                List<IdOptionValue> lstSelectedValues = keyValues.getTrueStatusItems();
+
+                if (lstSelectedValues.size() > 0) {
+
+                    for (IdOptionValue item : lstSelectedValues) {
+                        arrayResponse.add(new IdValue((Long) toProcess.getTag(), String.valueOf(item.getId())));
+                    }
+                } else {
+                    return false;
+                }
+
+            } else {
+                return false;
+            }
+        }else if (view instanceof Spinner) {
+            Spinner toProcess = (Spinner) view;
+
+            if (toProcess != null) {
+                arrayResponse.add(new IdValue((Long) toProcess.getTag(), String.valueOf(((IdOptionValue) toProcess.getSelectedItem()).getId())));
+            } else {
+                return false;
+            }
+
+        } else if(view instanceof LinearLayout && view.getTag() != null) {
+
+            LinearLayout toProcessLinear = (LinearLayout) view;
+            Long idQuestion = (Long) toProcessLinear.getTag();
+
+            // Se recorren todos los elementos de linear layout buscando los imageview de las imagenes
+            for (int k = 0; k < toProcessLinear.getChildCount(); k++) {
+
+                if (toProcessLinear.getChildAt(k) instanceof ImageView) {
+                    ImageView toProcess = (ImageView) toProcessLinear.getChildAt(k);
+                    if (toProcess != null && toProcess.getDrawable() != null) {
+                        String base64 = getEncoded64ImageStringFromBitmap(((BitmapDrawable) toProcess.getDrawable()).getBitmap());
+                        arrayResponse.add(new IdValue(idQuestion, base64));
+                    } else {
+                        return false;
+                    }
+                }
+
+            }
+
+        }
+
+        return true;
     }
 
     private void buildSurvey(){
@@ -290,6 +312,7 @@ public class SurveyActivity extends AppCompatActivity {
                 LinearLayout toInsertQuestion = new LinearLayout(this);
                 toInsertQuestion.setOrientation(LinearLayout.VERTICAL);
                 toInsertQuestion.addView(buildSeparator());
+                toInsertQuestion.setTag(new ResponseComplex());
                 setLayoutParams(toInsertQuestion);
 
                 linear.addView(buildTextView(label));
