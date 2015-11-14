@@ -530,7 +530,7 @@ public class SurveyDAO extends DriverSQL {
 
             // Inserta o actualiza un registro
             if ((int) db.insertWithOnConflict(TBL_NAME_RESPONSE_COMPLEX_OPTION, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
-                db.update(TBL_NAME_RESPONSE_COMPLEX_OPTION, initialValues, "ID=?", new String[]{String.valueOf(response.getInput_id())});
+                db.update(TBL_NAME_RESPONSE_COMPLEX_OPTION, initialValues, "ID=? AND COMPLEX=?", new String[]{String.valueOf(response.getInput_id()),complex});
             }
         }
     }
@@ -660,7 +660,6 @@ public class SurveyDAO extends DriverSQL {
     private void synchronizeResponsesAttributes(List<ResponseAttribute> responses, Long question,SQLiteDatabase db){
 
         if(responses != null) {
-
             for (ResponseAttribute response : responses) {
 
                 ContentValues initialValues = new ContentValues();

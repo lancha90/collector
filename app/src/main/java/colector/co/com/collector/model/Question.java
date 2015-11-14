@@ -34,11 +34,12 @@ public class Question {
         super();
     }
 
-    public Question(Long id, int type, List<IdOptionValue> responses, List<ResponseComplex> options, String name, String description) {
+    public Question(Long id, int type, List<IdOptionValue> responses, List<ResponseComplex> options,List<ResponseAttribute> atributos, String name, String description) {
         this.input_id = id;
         this.type = type;
         this.responses = responses;
         this.options = options;
+        this.atributos = atributos;
         this.name = name;
         this.description = description;
     }
