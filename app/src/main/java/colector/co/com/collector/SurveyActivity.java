@@ -20,17 +20,20 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -45,6 +48,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import colector.co.com.collector.adapters.OptionAdapter;
 import colector.co.com.collector.adapters.SurveyAdapterMultipleType;
 import colector.co.com.collector.adapters.SurveyAdapterOptionalType;
 import colector.co.com.collector.model.IdOptionValue;
@@ -52,11 +56,13 @@ import colector.co.com.collector.model.IdValue;
 import colector.co.com.collector.model.Question;
 import colector.co.com.collector.model.ResponseAttribute;
 import colector.co.com.collector.model.ResponseComplex;
+import colector.co.com.collector.model.ResponseItem;
 import colector.co.com.collector.model.Section;
 import colector.co.com.collector.model.Survey;
 import colector.co.com.collector.model.SurveySave;
 import colector.co.com.collector.persistence.dao.SurveyDAO;
 import colector.co.com.collector.session.AppSession;
+import colector.co.com.collector.settings.AppSettings;
 
 public class SurveyActivity extends AppCompatActivity {
 
@@ -65,7 +71,7 @@ public class SurveyActivity extends AppCompatActivity {
     private Survey survey = AppSession.getInstance().getCurrentSurvey();
     private boolean isModify = false;
     static final int REQUEST_TAKE_PHOTO = 1;
-
+    public PopupWindow popupWindow;
 
 
     @Override
@@ -136,8 +142,14 @@ public class SurveyActivity extends AppCompatActivity {
                                     isValid = false;
                                 }
 
+                            }else if(toFind.getChildAt(j) instanceof LinearLayout && toFind.getChildAt(j).getTag() != null && toFind.getChildAt(j).getTag() instanceof IdValue) {
 
-                            } else if (toFind.getChildAt(j) instanceof LinearLayout && toFind.getChildAt(j).getTag() != null) {
+                                IdValue toInsertValue = (IdValue) toFind.getChildAt(j).getTag();
+                                Toast.makeText(SurveyActivity.this, "uuid: "+toInsertValue.getValue()+"   question: "+toInsertValue.getId(), Toast.LENGTH_LONG).show();
+                                toInsert.getResponses().add(toInsertValue);
+
+                            }else if(toFind.getChildAt(j) instanceof LinearLayout && toFind.getChildAt(j).getTag() != null) {
+
                                 LinearLayout toProcessLinear = (LinearLayout) toFind.getChildAt(j);
                                 Long idQuestion = (Long) toProcessLinear.getTag();
 
@@ -204,7 +216,6 @@ public class SurveyActivity extends AppCompatActivity {
         }
 
     }
-
 
     private void buildSection(Section section){
 
@@ -275,18 +286,22 @@ public class SurveyActivity extends AppCompatActivity {
                 break;
             // dynamic form
             case 10:
-                linear.addView(buildSeparator());
+
+                LinearLayout toInsertQuestion = new LinearLayout(this);
+                toInsertQuestion.setOrientation(LinearLayout.VERTICAL);
+                toInsertQuestion.addView(buildSeparator());
+                setLayoutParams(toInsertQuestion);
+
                 linear.addView(buildTextView(label));
 
-                linear.addView(buildButton(getString(R.string.survey_search), showPopupSearch(options)));
+                linear.addView(buildButton(getString(R.string.survey_search), showPopupSearch(options, toInsertQuestion,id)));
 
                 for( ResponseAttribute item : atributos ){
-
-                    buildQuestion(item.getLabel(),item.getInput_id(),item.getType(),item.getResponses(),null,null,linear);
-
+                    buildQuestion(item.getLabel(),item.getInput_id(),item.getType(),item.getResponses(),null,null,toInsertQuestion);
                 }
 
-                linear.addView(buildSeparator());
+                toInsertQuestion.addView(buildSeparator());
+                linear.addView(toInsertQuestion);
                 break;
         }
     }
@@ -530,10 +545,61 @@ public class SurveyActivity extends AppCompatActivity {
     }
 
 
-    private View.OnClickListener showPopupSearch(List<ResponseComplex> options){
+    private View.OnClickListener showPopupSearch(final List<ResponseComplex> options, final LinearLayout linear,final Long idQuestion){
 
-        LayoutInflater layoutInflater = (LayoutInflater)getBaseContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = layoutInflater.inflate(R.layout.popup_search, null);
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                LayoutInflater layoutInflater = (LayoutInflater)getBaseContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                View popupView = layoutInflater.inflate(R.layout.popup_search, null);
+                ListView listOptions = (ListView) popupView.findViewById(R.id.search_list_option);
+                popupWindow = new PopupWindow(popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,true);
+                popupWindow.setTouchable(true);
+                popupWindow.setFocusable(true);
+                popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
+
+                listOptions.setAdapter(new OptionAdapter(popupView.getContext(), options));
+
+                listOptions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                        fillDynamicForm(options.get(position),linear,idQuestion);
+                        popupWindow.dismiss();
+                    }
+                });
+
+                ((Button) popupView.findViewById(R.id.search_close)).setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View arg0) {
+                        popupWindow.dismiss();
+                    }
+                });
+            }
+        };
+
+    }
+
+    /**
+     * to fill diferents fields from opcion choose
+     */
+    private void fillDynamicForm(ResponseComplex option,LinearLayout linear, Long idQuestion){
+
+        linear.removeAllViews();
+
+        LinearLayout toInsertQuestion = new LinearLayout(this);
+        toInsertQuestion.setOrientation(LinearLayout.VERTICAL);
+        setLayoutParams(toInsertQuestion);
+        linear.setTag(new IdValue(idQuestion, option.getRecord_id().getUuid()));
+
+        for (ResponseItem data : option.getResponses()){
+            TextView toInsert = new TextView(SurveyActivity.this);
+            toInsert.setText(data.getLabel() + ": " + data.getValue());
+            toInsert.setTextColor(ContextCompat.getColor(SurveyActivity.this, R.color.text_color));
+            linear.addView(toInsert);
+        }
 
     }
 

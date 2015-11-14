@@ -20,4 +20,5 @@ public class AppSettings {
     // ------------------ LOG ------------------
     public static String TAG = "Collector";
 
+
 }
