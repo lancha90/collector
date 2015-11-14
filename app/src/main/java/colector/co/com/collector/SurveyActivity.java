@@ -20,6 +20,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -61,6 +62,7 @@ import colector.co.com.collector.model.Survey;
 import colector.co.com.collector.model.SurveySave;
 import colector.co.com.collector.persistence.dao.SurveyDAO;
 import colector.co.com.collector.session.AppSession;
+import colector.co.com.collector.settings.AppSettings;
 
 public class SurveyActivity extends AppCompatActivity {
 
@@ -255,6 +257,8 @@ public class SurveyActivity extends AppCompatActivity {
     }
 
     private void buildQuestion(String label,Long id,int type,List<IdOptionValue> response, List<ResponseComplex> options, List<ResponseAttribute> atributos, LinearLayout linear){
+
+        Log.i(AppSettings.TAG,">>>>>>>>>item.getType(): "+type);
         switch (type){
             // input text
             case 1:
@@ -268,6 +272,11 @@ public class SurveyActivity extends AppCompatActivity {
                 break;
             // opcion o combobox
             case 3:
+                linear.addView(buildTextView(label));
+                linear.addView(buildSpinner(response, id));
+                break;
+            // opcion o combobox
+            case 4:
                 linear.addView(buildTextView(label));
                 linear.addView(buildSpinner(response, id));
                 break;
@@ -314,6 +323,7 @@ public class SurveyActivity extends AppCompatActivity {
                 setLayoutParams(toInsertQuestion);
 
                 linear.addView(buildTextView(label));
+
                 linear.addView(buildButton(getString(R.string.survey_search), showPopupSearch(options, toInsertQuestion, id)));
 
                 if(survey.getInstanceId() != null){
@@ -331,7 +341,7 @@ public class SurveyActivity extends AppCompatActivity {
 
                 if(toModify == null){
                     for( ResponseAttribute item : atributos ){
-                        buildQuestion(item.getLabel(),item.getInput_id(),item.getType(),item.getResponses(),null,null,toInsertQuestion);
+                        buildQuestion(item.getLabel(), item.getInput_id(), item.getType(), item.getResponses(), null, null, toInsertQuestion);
                     }
                 }else{
                     fillDynamicForm(toModify,toInsertQuestion,id);
