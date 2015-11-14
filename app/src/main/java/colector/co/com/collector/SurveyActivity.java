@@ -535,7 +535,6 @@ public class SurveyActivity extends AppCompatActivity {
         LayoutInflater layoutInflater = (LayoutInflater)getBaseContext().getSystemService(LAYOUT_INFLATER_SERVICE);
         View popupView = layoutInflater.inflate(R.layout.popup_search, null);
 
-        return null;
     }
 
     /**
