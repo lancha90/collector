@@ -6,6 +6,7 @@ package colector.co.com.collector.model;
 public class IdValue {
     private Long id;
     private String value;
+    private String ovValue;
 
     public IdValue(){
         super();
@@ -15,6 +16,12 @@ public class IdValue {
         super();
         this.id = id;
         this.value = value;
+    }
+
+    public IdValue(Long id, String value, String ovValue) {
+        this.id = id;
+        this.value = value;
+        this.ovValue = ovValue;
     }
 
     public Long getId() {
@@ -31,5 +38,13 @@ public class IdValue {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getOvValue() {
+        return ovValue;
+    }
+
+    public void setOvValue(String ovValue) {
+        this.ovValue = ovValue;
     }
 }

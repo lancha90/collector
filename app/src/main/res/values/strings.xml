@@ -21,8 +21,10 @@
     <string name="survey_save_error_field">Debe diligenciar todos los campos</string>
     <string name="survey_save">Guardar</string>
     <string name="survey_search">Buscar</string>
-
-
+    <string name="survey_total">Sub Total: </string>
+    <string name="survey_big_total">Total: </string>
+    <string name="survey_form_error">Oops, hay un error en la formula, por favor contacte al administrador!</string>
+    <string name="survey_ov_error_duplicate">El item seleccionado ya fue incluido!</string>
 
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>

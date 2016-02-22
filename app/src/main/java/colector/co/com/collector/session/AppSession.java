@@ -19,6 +19,8 @@ public class AppSession {
     private String currentPhotoPath;
     private Long currentPhotoID;
 
+
+
     public AppSession() {
     }
 

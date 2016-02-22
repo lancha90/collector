@@ -3,6 +3,7 @@ package colector.co.com.collector.http;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -48,6 +49,7 @@ public class BackgroundTask extends AsyncTask<String, Integer, Object> {
 			request.contentType("application/json");
 			request.acceptCharset("application/json");
 			if(AppSession.getInstance().getUser() != null) {
+				Log.i("COLLECTOR",">>>>>>>TOKEN: "+AppSession.getInstance().getUser().getToken());
 				request.header("token",AppSession.getInstance().getUser().getToken());
 			}
 
@@ -56,10 +58,13 @@ public class BackgroundTask extends AsyncTask<String, Integer, Object> {
 			request.trustAllHosts();
 			// Body
 			if (param != null) {
+				Log.i("COLLECTOR",">>>>>>>REQUEST: "+gson.toJson(param).toString());
 				request.send(gson.toJson(param));
 			}
 
 			String response = request.body();
+
+			Log.i("COLLECTOR",">>>>>>>RESPONSE: "+response);
 
 			if (request.ok() || request.created()) {
 				toReturn = gson.fromJson(response, responseClass.getClass());

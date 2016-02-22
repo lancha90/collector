@@ -85,6 +85,10 @@ public class SurveyAdapter extends ArrayAdapter<Survey> {
                     toSend.setForm_id(String.valueOf(item.getForm_id()));
                     toSend.setColector_id(String.valueOf(AppSession.getInstance().getUser().getColector_id()));
                     toSend.setResponsesData(item.getInstanceAnswers());
+                    toSend.setLongitud(item.getLongitud());
+                    toSend.setLatitud(item.getLatitud());
+                    toSend.setHoraini(item.getHoraini());
+                    toSend.setHorafin(item.getHorafin());
 
                     AsyncResponse callback = new AsyncResponse() {
                         @Override

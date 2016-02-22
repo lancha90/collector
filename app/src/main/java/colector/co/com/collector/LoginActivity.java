@@ -64,6 +64,7 @@ public class LoginActivity extends AppCompatActivity {
 
             LoginRequest toSend = new LoginRequest(etUsername.getText().toString(), etPassword.getText().toString());
             toSend.setTabletId(UUID);
+
             AsyncResponse callback = new AsyncResponse() {
                 @Override
                 public void callback(Object output) {

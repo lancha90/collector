@@ -18,7 +18,9 @@ import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
@@ -42,11 +44,15 @@ import android.widget.Toast;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import colector.co.com.collector.adapters.OptionAdapter;
 import colector.co.com.collector.adapters.SurveyAdapterMultipleType;
@@ -63,6 +69,9 @@ import colector.co.com.collector.model.SurveySave;
 import colector.co.com.collector.persistence.dao.SurveyDAO;
 import colector.co.com.collector.session.AppSession;
 import colector.co.com.collector.settings.AppSettings;
+import colector.co.com.collector.utils.OrdenVentaClass;
+import colector.co.com.collector.utils.Utilities;
+
 
 public class SurveyActivity extends AppCompatActivity {
 
@@ -72,7 +81,7 @@ public class SurveyActivity extends AppCompatActivity {
     private boolean isModify = false;
     static final int REQUEST_TAKE_PHOTO = 1;
     public PopupWindow popupWindow;
-
+    private Map<Integer,OrdenVentaClass> objectOV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +90,7 @@ public class SurveyActivity extends AppCompatActivity {
 
         container = (LinearLayout) findViewById(R.id.survey_contaniner);
         pictureLayouts = new ArrayList<LinearLayout>();
+        objectOV = new HashMap<Integer,OrdenVentaClass>();
 
         buildSurvey();
 
@@ -128,8 +138,9 @@ public class SurveyActivity extends AppCompatActivity {
                 if (isValid) {
                     toInsert.setId(survey.getForm_id());
                     // TODO implemnetar el api geografica
-                    toInsert.setLatitude("LATITUDE");
-                    toInsert.setLongitude("LONGITUDE");
+                    toInsert.setLatitud("4.008");
+                    toInsert.setLongitud("57.008");
+
 
                     Long result;
                     if (isModify) {
@@ -206,20 +217,47 @@ public class SurveyActivity extends AppCompatActivity {
         } else if(view instanceof LinearLayout && view.getTag() != null) {
 
             LinearLayout toProcessLinear = (LinearLayout) view;
-            Long idQuestion = (Long) toProcessLinear.getTag();
 
-            // Se recorren todos los elementos de linear layout buscando los imageview de las imagenes
-            for (int k = 0; k < toProcessLinear.getChildCount(); k++) {
+            if (toProcessLinear.getTag() instanceof Long) {
 
-                if (toProcessLinear.getChildAt(k) instanceof ImageView) {
-                    ImageView toProcess = (ImageView) toProcessLinear.getChildAt(k);
-                    if (toProcess != null && toProcess.getDrawable() != null) {
-                        String base64 = getEncoded64ImageStringFromBitmap(((BitmapDrawable) toProcess.getDrawable()).getBitmap());
-                        arrayResponse.add(new IdValue(idQuestion, base64));
-                    } else {
-                        return false;
+                Long idQuestion = (Long) toProcessLinear.getTag();
+
+                // Se recorren todos los elementos de linear layout buscando los imageview de las imagenes
+                for (int k = 0; k < toProcessLinear.getChildCount(); k++) {
+
+                    if (toProcessLinear.getChildAt(k) instanceof ImageView) {
+                        ImageView toProcess = (ImageView) toProcessLinear.getChildAt(k);
+                        if (toProcess != null && toProcess.getDrawable() != null) {
+                            String base64 = getEncoded64ImageStringFromBitmap(((BitmapDrawable) toProcess.getDrawable()).getBitmap());
+                            arrayResponse.add(new IdValue(idQuestion, base64));
+                        } else {
+                            return false;
+                        }
                     }
+
                 }
+            }else if (toProcessLinear.getTag() instanceof OrdenVentaClass){
+
+                OrdenVentaClass toProcess = (OrdenVentaClass) toProcessLinear.getTag();
+
+
+                if(toProcess.getCount().size() == 0){
+                    // TODO pendiente de implementar la validación para los campos del formulario
+                    return false;
+
+                }else{
+
+                    Iterator it = toProcess.getCount().keySet().iterator();
+                    while(it.hasNext()){
+                        String key = (String) it.next();
+                        arrayResponse.add(new IdValue(toProcess.getQuestion(), key,toProcess.getCount().get(key).toString() ));
+                    }
+
+
+                }
+
+
+
 
             }
 
@@ -258,7 +296,6 @@ public class SurveyActivity extends AppCompatActivity {
 
     private void buildQuestion(String label,Long id,int type,List<IdOptionValue> response, List<ResponseComplex> options, List<ResponseAttribute> atributos, LinearLayout linear){
 
-        Log.i(AppSettings.TAG,">>>>>>>>>item.getType(): "+type);
         switch (type){
             // input text
             case 1:
@@ -324,13 +361,13 @@ public class SurveyActivity extends AppCompatActivity {
 
                 linear.addView(buildTextView(label));
 
-                linear.addView(buildButton(getString(R.string.survey_search), showPopupSearch(options, toInsertQuestion, id)));
+                linear.addView(buildButton(getString(R.string.survey_search), showPopupSearch(options, toInsertQuestion, id,false)));
 
                 if(survey.getInstanceId() != null){
                     isModify=true;
 
                     for(ResponseComplex item : options){
-                        if(item.getRecord_id().getUuid().equals(survey.getAnswer(id))){
+                        if(item.getRecord_id().equals(survey.getAnswer(id))){
                             toModify = item;
                             break;
                         }
@@ -349,6 +386,41 @@ public class SurveyActivity extends AppCompatActivity {
 
                 toInsertQuestion.addView(buildSeparator());
                 linear.addView(toInsertQuestion);
+                break;
+            // orden venta
+            case 11:
+
+                LinearLayout toInsertQuestionOV = new LinearLayout(this);
+                ResponseComplex toModifyOV = null;
+                toInsertQuestionOV.setOrientation(LinearLayout.VERTICAL);
+                toInsertQuestionOV.addView(buildSeparator());
+                setLayoutParams(toInsertQuestionOV);
+
+                linear.addView(buildTextView(label));
+
+                linear.addView(buildButton(getString(R.string.survey_search), showPopupSearch(options, toInsertQuestionOV, id,true)));
+
+                if(survey.getInstanceId() != null){
+                    isModify=true;
+
+                    for(ResponseComplex item : options){
+                        if(item.getRecord_id().equals(survey.getAnswer(id))){
+                            toModifyOV = item;
+                            break;
+                        }
+                    }
+                }
+
+                if(toModifyOV == null){
+                    for( ResponseAttribute item : atributos ){
+                        buildQuestion(item.getLabel(), item.getInput_id(), item.getType(), item.getResponses(), null, null, toInsertQuestionOV);
+                    }
+                }else{
+                    fillDynamicFormOV(toModifyOV, toInsertQuestionOV, id);
+                }
+
+                toInsertQuestionOV.addView(buildSeparator());
+                linear.addView(toInsertQuestionOV);
                 break;
         }
     }
@@ -592,7 +664,7 @@ public class SurveyActivity extends AppCompatActivity {
     }
 
 
-    private View.OnClickListener showPopupSearch(final List<ResponseComplex> options, final LinearLayout linear,final Long idQuestion){
+    private View.OnClickListener showPopupSearch(final List<ResponseComplex> options, final LinearLayout linear,final Long idQuestion, final boolean isOrdenVenta){
 
         return new View.OnClickListener() {
             @Override
@@ -612,7 +684,13 @@ public class SurveyActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                        fillDynamicForm(options.get(position),linear,idQuestion);
+                        if (isOrdenVenta) {
+                            fillDynamicFormOV(options.get(position), linear, idQuestion);
+                        } else {
+                            fillDynamicForm(options.get(position), linear, idQuestion);
+                        }
+
+
                         popupWindow.dismiss();
                     }
                 });
@@ -640,17 +718,105 @@ public class SurveyActivity extends AppCompatActivity {
         toInsertQuestion.setOrientation(LinearLayout.VERTICAL);
         setLayoutParams(toInsertQuestion);
 
-
-            linear.setTag(new IdValue(idQuestion, option.getRecord_id().getUuid()));
+            linear.setTag(new IdValue(idQuestion, option.getRecord_id()));
             for (ResponseItem data : option.getResponses()){
                 TextView toInsert = new TextView(SurveyActivity.this);
                 toInsert.setText(data.getLabel() + ": " + data.getValue());
                 toInsert.setTextColor(ContextCompat.getColor(SurveyActivity.this, R.color.text_color));
                 linear.addView(toInsert);
             }
+    }
 
+    /**
+     * to fill diferents fields from opcion choose
+     */
+    private void fillDynamicFormOV(final ResponseComplex option,final LinearLayout linear, Long idQuestion){
 
+        OrdenVentaClass ov = objectOV.get(idQuestion.intValue());
 
+        if(ov != null && ov.getCount().get(option.getRecord_id()) != null ){
+            Toast.makeText(SurveyActivity.this, getString(R.string.survey_ov_error_duplicate), Toast.LENGTH_SHORT).show();
+        }else {
+
+            LinearLayout toInsertQuestion = new LinearLayout(this);
+            toInsertQuestion.setOrientation(LinearLayout.VERTICAL);
+            setLayoutParams(toInsertQuestion);
+            final OrdenVentaClass tempOV;
+
+            if (ov == null) {
+                TextView labelTotal = new TextView(SurveyActivity.this);
+                labelTotal.setText(getString(R.string.survey_big_total) + " 0");
+                ov = new OrdenVentaClass(labelTotal, idQuestion);
+                objectOV.put(idQuestion.intValue(), ov);
+                linear.addView(labelTotal, 1);
+            }
+
+            // copy to temporal file to use into listener
+            tempOV = ov;
+
+            toInsertQuestion.setTag(new IdValue(idQuestion, option.getRecord_id()));
+            for (ResponseItem data : option.getResponses()) {
+                TextView toInsert = new TextView(SurveyActivity.this);
+                toInsert.setText(data.getLabel() + ": " + data.getValue());
+                toInsert.setTextColor(ContextCompat.getColor(SurveyActivity.this, R.color.text_color));
+                toInsertQuestion.addView(toInsert);
+            }
+
+            final EditText countText = new EditText(this);
+            countText.setInputType(InputType.TYPE_CLASS_NUMBER);
+            toInsertQuestion.addView(countText);
+
+            TextView labelSubTotal = new TextView(SurveyActivity.this);
+            labelSubTotal.setText(getString(R.string.survey_total));
+            toInsertQuestion.addView(labelSubTotal);
+
+            final TextView toTotal = new TextView(SurveyActivity.this);
+            toTotal.setText("0");
+            toInsertQuestion.addView(toTotal);
+
+            // Event change edit text to update the total
+            countText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    String countToPut = (countText.getText().toString().equals("")) ? "0" : countText.getText().toString();
+                    String form = option.getFormula().replaceAll(AppSettings.REPLACE, countToPut);
+                    toTotal.setText("" + Utilities.eval(form));
+
+                    tempOV.getSubtotal().put(option.getRecord_id(), Double.parseDouble(toTotal.getText().toString()));
+                    tempOV.getCount().put(option.getRecord_id(), Integer.parseInt(countToPut));
+                    tempOV.updateTotal();
+
+                    linear.setTag(tempOV);
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+
+                }
+            });
+
+            countText.setText("0");
+            toInsertQuestion.addView(buildSeparator());
+
+            // Evento to remove object
+      /*  toInsertQuestion.setOnLongClickListener(new View.OnLongClickListener() {
+
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(SurveyActivity.this, "Long click!", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+        });*/
+
+            linear.addView(toInsertQuestion, 1);
+        }
     }
 
     /**

@@ -14,7 +14,6 @@ import java.util.List;
 import colector.co.com.collector.model.IdOptionValue;
 import colector.co.com.collector.model.IdValue;
 import colector.co.com.collector.model.Question;
-import colector.co.com.collector.model.RecordId;
 import colector.co.com.collector.model.ResponseAttribute;
 import colector.co.com.collector.model.ResponseComplex;
 import colector.co.com.collector.model.ResponseItem;
@@ -54,7 +53,7 @@ public class SurveyDAO extends DriverSQL {
         db = getDBRead();
         List<Survey> toReturn = new ArrayList<Survey>();
 
-        String[] fields = new String[] { "ID_SURVEY","DATE_INSTANCE","ID" };
+        String[] fields = new String[] { "ID_SURVEY","ID","LATITUDE","LONGITUDE","DATE_INIT","DATE_END" };
         String[] fieldsSurvey = new String[] { "ID", "NAME", "DESCRIPTION" };
         String[] where = new String[] { "FALSE" };
 
@@ -65,8 +64,12 @@ public class SurveyDAO extends DriverSQL {
                 if (cursor.moveToFirst()) {
                     do {
                         Long surveyId = cursor.getLong(0);
-                        String instanceDate = cursor.getString(1);
-                        Long instanceId = cursor.getLong(2);
+                        Long instanceId = cursor.getLong(1);
+                        String latitude =  cursor.getString(2);
+                        String longitude =  cursor.getString(3);
+                        String date_init =  cursor.getString(4);
+                        String date_end =  cursor.getString(5);
+
 
                         Cursor cursorSurvey = db.query(TBL_NAME, fieldsSurvey, "ID=?", new String[]{String.valueOf(surveyId)}, null, null, null);
 
@@ -78,7 +81,10 @@ public class SurveyDAO extends DriverSQL {
                                     survey.setForm_name(cursorSurvey.getString(1));
                                     survey.setForm_description(cursorSurvey.getString(2));
                                     survey.setInstanceId(instanceId);
-                                    survey.setInstanceDate(instanceDate);
+                                    survey.setLatitud(latitude);
+                                    survey.setLongitud(longitude);
+                                    survey.setHorafin(date_end);
+                                    survey.setHoraini(date_init);
                                     getSurveySections(db, survey);
                                     getSurveyInstanceDetail(db, instanceId, survey);
 
@@ -112,16 +118,16 @@ public class SurveyDAO extends DriverSQL {
      */
     private void getSurveyInstanceDetail(SQLiteDatabase db, Long instances,Survey survey){
 
-        String[] fields = new String[] { "ID_QUESTION","ANSWER" };
+        String[] fields = new String[] { "ID_QUESTION","ANSWER","ANSWER_OV" };
         String[] where = new String[] { String.valueOf(instances) };
 
         Cursor cursor = db.query(TBL_NAME_SURVEY_INSTANCE_DETAIL, fields, "ID_INSTANCE=?", where, null, null, null);
         try{
-            Log.w(AppSettings.TAG, TBL_NAME_SURVEY_INSTANCE_DETAIL + " >>>>>> " + instances);
+
             if (cursor.getCount() > 0) {
                 if (cursor.moveToFirst()) {
                     do {
-                        survey.getInstanceAnswers().add(new IdValue(cursor.getLong(0), cursor.getString(1)));
+                        survey.getInstanceAnswers().add(new IdValue(cursor.getLong(0), cursor.getString(1), cursor.getString(2)));
                     } while (cursor.moveToNext());
                 }
             }
@@ -287,7 +293,7 @@ public class SurveyDAO extends DriverSQL {
      */
     private void getSurveyQuestionComplex(SQLiteDatabase db, Question question){
 
-        String[] fields = new String[] { "ID"};
+        String[] fields = new String[] { "ID","FORM"};
         String[] where = new String[] { String.valueOf(question.getId()) };
 
         Cursor cursor = db.query(TBL_NAME_RESPONSE_COMPLEX, fields, "QUESTION=?", where, null, null, null);
@@ -298,8 +304,9 @@ public class SurveyDAO extends DriverSQL {
                 if (cursor.moveToFirst()) {
                     do {
                         ResponseComplex response = new ResponseComplex();
-                        RecordId record_id = new RecordId(cursor.getString(0));
-                        response.setRecord_id(record_id);
+
+                        response.setRecord_id(cursor.getString(0));
+                        response.setFormula(cursor.getString(1));
 
                         getSurveyQuestionComplexOptions(db, response);
 
@@ -325,7 +332,7 @@ public class SurveyDAO extends DriverSQL {
     private void getSurveyQuestionComplexOptions(SQLiteDatabase db, ResponseComplex complex){
 
         String[] fields = new String[] { "ID, LABEL, VALUE, TYPE"};
-        String[] where = new String[] { String.valueOf(complex.getRecord_id().getUuid()) };
+        String[] where = new String[] { String.valueOf(complex.getRecord_id()) };
 
         Cursor cursor = db.query(TBL_NAME_RESPONSE_COMPLEX_OPTION, fields, "COMPLEX=?", where, null, null, null);
 
@@ -501,14 +508,15 @@ public class SurveyDAO extends DriverSQL {
             for (ResponseComplex response : responses) {
 
                 ContentValues initialValues = new ContentValues();
-                initialValues.put("ID", response.getRecord_id().getUuid());
+                initialValues.put("ID", response.getRecord_id());
                 initialValues.put("QUESTION", question);
+                initialValues.put("FORM", response.getFormula());
 
                 // Inserta o actualiza un registro
                 if ((int) db.insertWithOnConflict(TBL_NAME_RESPONSE_COMPLEX, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
-                    db.update(TBL_NAME_RESPONSE_COMPLEX, initialValues, "ID=?", new String[]{String.valueOf(response.getRecord_id().getUuid())});
+                    db.update(TBL_NAME_RESPONSE_COMPLEX, initialValues, "ID=?", new String[]{String.valueOf(response.getRecord_id())});
                 }
-                synchronizeResponsesComplexOptions(response.getResponses(), response.getRecord_id().getUuid(), db);
+                synchronizeResponsesComplexOptions(response.getResponses(), response.getRecord_id(), db);
             }
         }
     }
@@ -544,7 +552,7 @@ public class SurveyDAO extends DriverSQL {
         SQLiteDatabase db = getDBWrite();
         try{
         for (IdValue toInsert : survey.getResponses()){
-            modifySurveyInstanceDetail(db,survey.getInstanceId(),toInsert.getId(),toInsert.getValue());
+            modifySurveyInstanceDetail(db,survey.getInstanceId(),toInsert.getId(),toInsert.getValue(),toInsert.getOvValue());
         }}catch (SQLException se) {
             String msg = "Ha ocurrido un error actualizando una encuesta.";
             Log.e(AppSettings.TAG, msg, se);
@@ -565,16 +573,18 @@ public class SurveyDAO extends DriverSQL {
 
         ContentValues initialValues = new ContentValues();
         initialValues.put("ID_SURVEY", survey.getId());
-        initialValues.put("DATE_INSTANCE", String.valueOf(new Timestamp(new java.util.Date().getTime())));
-        initialValues.put("LATITUDE", survey.getLatitude());
-        initialValues.put("LONGITUDE", survey.getLongitude());
+        initialValues.put("DATE_END", String.valueOf(new Timestamp(new java.util.Date().getTime())));
+        initialValues.put("DATE_INIT", String.valueOf(new Timestamp(new java.util.Date().getTime())));
+        initialValues.put("LATITUDE", survey.getLatitud());
+        initialValues.put("LONGITUDE", survey.getLongitud());
+
 
         Long toReturn = db.insert(TBL_NAME_SURVEY_INSTANCE, null, initialValues);
 
         if(toReturn!=-1) {
 
             for (IdValue toInsert : survey.getResponses()){
-                saveSurveyInstanceDetail(db,toReturn,toInsert.getId(),toInsert.getValue());
+                saveSurveyInstanceDetail(db,toReturn,toInsert.getId(),toInsert.getValue(),toInsert.getOvValue());
             }
         }
         close();
@@ -588,12 +598,16 @@ public class SurveyDAO extends DriverSQL {
      * @param question
      * @param answer
      */
-    private void saveSurveyInstanceDetail(SQLiteDatabase db, Long instances,Long question, String answer){
+    private void saveSurveyInstanceDetail(SQLiteDatabase db, Long instances,Long question, String answer,String answerOV){
 
         ContentValues initialValues = new ContentValues();
         initialValues.put("ID_INSTANCE", instances);
         initialValues.put("ID_QUESTION", question);
         initialValues.put("ANSWER", answer);
+
+        if(answerOV != null){
+            initialValues.put("ANSWER_OV", answerOV);
+        }
 
         // Inserta o actualiza un registro
         if ((int) db.insertWithOnConflict(TBL_NAME_SURVEY_INSTANCE_DETAIL, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
@@ -608,12 +622,15 @@ public class SurveyDAO extends DriverSQL {
      * @param question
      * @param answer
      */
-    private void modifySurveyInstanceDetail(SQLiteDatabase db, Long instances,Long question, String answer){
+    private void modifySurveyInstanceDetail(SQLiteDatabase db, Long instances,Long question, String answer, String answerOV){
 
         ContentValues initialValues = new ContentValues();
         initialValues.put("ID_INSTANCE", instances);
         initialValues.put("ID_QUESTION", question);
         initialValues.put("ANSWER", answer);
+        if(answerOV != null){
+            initialValues.put("ANSWER_OV", answerOV);
+        }
 
         db.update(TBL_NAME_SURVEY_INSTANCE_DETAIL, initialValues, "ID_INSTANCE=? AND ID_QUESTION=?", new String[]{String.valueOf(instances), String.valueOf(question)});
 

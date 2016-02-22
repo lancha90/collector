@@ -14,6 +14,10 @@ public class SendSurveyRequest {
     private String colector_id;
     private String form_id;
     private List<IdInputValue> responses;
+    private String latitud;
+    private String longitud;
+    private String horaini;
+    private String horafin;
 
     public String getColector_id() {
         return colector_id;
@@ -42,8 +46,40 @@ public class SendSurveyRequest {
     public void setResponsesData(List<IdValue> responsesData) {
         responses = new ArrayList<IdInputValue>();
         for (IdValue item: responsesData) {
-            responses.add(new IdInputValue(String.valueOf(item.getId()),item.getValue()));
+            responses.add(new IdInputValue(String.valueOf(item.getId()),item.getValue(),item.getOvValue() ));
         }
+    }
+
+    public String getLatitud() {
+        return latitud;
+    }
+
+    public void setLatitud(String latitud) {
+        this.latitud = latitud;
+    }
+
+    public String getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(String longitud) {
+        this.longitud = longitud;
+    }
+
+    public String getHoraini() {
+        return horaini;
+    }
+
+    public void setHoraini(String horaini) {
+        this.horaini = horaini;
+    }
+
+    public String getHorafin() {
+        return horafin;
+    }
+
+    public void setHorafin(String horafin) {
+        this.horafin = horafin;
     }
 }
 

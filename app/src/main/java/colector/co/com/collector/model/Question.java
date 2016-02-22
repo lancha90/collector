@@ -21,6 +21,7 @@ public class Question {
      * NUMERO = '8' OK
      * SCAN = '9'
      * DINAMICA = '10'
+     * ORDEN VENTA= '11'
      */
     private int type;
 

@@ -12,8 +12,11 @@ public class Survey {
     private String form_description;
     private List<Section> sections;
     private Long instanceId;
-    private String instanceDate;
     private List<IdValue> instanceAnswers;
+    private String latitud;
+    private String longitud;
+    private String horaini;
+    private String horafin;
 
     public Survey() {
         super();
@@ -28,7 +31,7 @@ public class Survey {
 
 
     public String getSurveyDoneDescription(){
-        return instanceDate;
+        return horaini;
     }
 
     public Long getForm_id() {
@@ -74,14 +77,6 @@ public class Survey {
         this.instanceId = instanceId;
     }
 
-    public String getInstanceDate() {
-        return instanceDate;
-    }
-
-    public void setInstanceDate(String instanceDate) {
-        this.instanceDate = instanceDate;
-    }
-
     public List<IdValue> getInstanceAnswers() {
         if(instanceAnswers==null){
             instanceAnswers=new ArrayList<IdValue>();
@@ -110,5 +105,37 @@ public class Survey {
             }
         }
         return listAnswers;
+    }
+
+    public String getLatitud() {
+        return latitud;
+    }
+
+    public void setLatitud(String latitud) {
+        this.latitud = latitud;
+    }
+
+    public String getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(String longitud) {
+        this.longitud = longitud;
+    }
+
+    public String getHoraini() {
+        return horaini;
+    }
+
+    public void setHoraini(String horaini) {
+        this.horaini = horaini;
+    }
+
+    public String getHorafin() {
+        return horafin;
+    }
+
+    public void setHorafin(String horafin) {
+        this.horafin = horafin;
     }
 }

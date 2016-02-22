@@ -8,25 +8,26 @@ import java.util.List;
  */
 public class ResponseComplex {
 
-    private RecordId record_id;
+    private String record_id;
+    private String formula;
     private List<ResponseItem> responses;
 
 
-
-    public ResponseComplex(RecordId record_id, List<ResponseItem> responses) {
+    public ResponseComplex(String record_id, List<ResponseItem> responses,String formula) {
         this.record_id = record_id;
         this.responses = responses;
+        this.formula = formula;
     }
 
     public ResponseComplex() {
         super();
     }
 
-    public RecordId getRecord_id() {
+    public String getRecord_id() {
         return record_id;
     }
 
-    public void setRecord_id(RecordId record_id) {
+    public void setRecord_id(String record_id) {
         this.record_id = record_id;
     }
 
@@ -42,4 +43,11 @@ public class ResponseComplex {
     }
 
 
+    public String getFormula() {
+        return formula;
+    }
+
+    public void setFormula(String formula) {
+        this.formula = formula;
+    }
 }

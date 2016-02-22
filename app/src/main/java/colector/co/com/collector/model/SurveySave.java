@@ -10,8 +10,8 @@ public class SurveySave {
 
     private Long instanceId;
     private Long id;
-    private String latitude;
-    private String longitude;
+    private String latitud;
+    private String longitud;
     private List<IdValue> responses;
 
     public SurveySave(){
@@ -26,21 +26,6 @@ public class SurveySave {
         this.id = id;
     }
 
-    public String getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(String latitude) {
-        this.latitude = latitude;
-    }
-
-    public String getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(String longitude) {
-        this.longitude = longitude;
-    }
 
     public List<IdValue> getResponses() {
         if(responses == null){
@@ -60,4 +45,21 @@ public class SurveySave {
     public void setInstanceId(Long instanceId) {
         this.instanceId = instanceId;
     }
+
+    public String getLatitud() {
+        return latitud;
+    }
+
+    public void setLatitud(String latitud) {
+        this.latitud = latitud;
+    }
+
+    public String getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(String longitud) {
+        this.longitud = longitud;
+    }
+
 }
